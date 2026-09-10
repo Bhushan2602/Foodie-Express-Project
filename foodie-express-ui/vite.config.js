@@ -10,12 +10,14 @@ export default defineConfig({
   ],
   build: {
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-charts': ['recharts'],
+        advancedChunks: {
+          groups: [
+            { name: 'vendor-react', test: /node_modules[\\/](react|react-dom|react-router)/ },
+            { name: 'vendor-motion', test: /node_modules[\\/]framer-motion/ },
+            { name: 'vendor-charts', test: /node_modules[\\/]recharts/ },
+          ],
         },
       },
     },
