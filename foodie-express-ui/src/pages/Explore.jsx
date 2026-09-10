@@ -372,7 +372,7 @@ const Explore = ({ headerCity }) => {
                 transition={{ delay: Math.min(idx * 0.05, 0.5) }}
               >
                 {viewMode === 'grid' ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                  <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full lift-3d">
                     <Link to={`/restaurant/${res.id}`} className="h-48 overflow-hidden relative block bg-gray-100">
                       <img
                         src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
@@ -443,7 +443,7 @@ const Explore = ({ headerCity }) => {
                   </div>
                 ) : (
                   /* List View */
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition flex">
+                  <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 overflow-hidden hover:shadow-lg transition flex lift-3d">
                     <Link to={`/restaurant/${res.id}`} className="w-48 md:w-64 h-48 flex-shrink-0 overflow-hidden relative block bg-gray-100">
                       <img
                         src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}

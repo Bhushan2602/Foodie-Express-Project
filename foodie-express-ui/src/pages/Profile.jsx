@@ -361,25 +361,25 @@ const Profile = () => {
                     </button>
 
                     {openPanel === 'edit' && item.id === 'edit' && (
-                      <form onSubmit={handleEditProfile} className="p-4 border-t bg-gray-50 flex gap-2">
+                      <form onSubmit={handleEditProfile} className="p-4 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex gap-2">
                         <input
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
                           placeholder="Full name"
-                          className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                          className="flex-1 px-4 py-2.5 bg-white dark:bg-stone-900 text-gray-800 dark:text-stone-100 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-orange-500"
                         />
                         <button className="bg-orange-500 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-orange-600">Save</button>
                       </form>
                     )}
 
                     {openPanel === 'password' && item.id === 'password' && (
-                      <form onSubmit={handleChangePassword} className="p-4 border-t bg-gray-50 space-y-2">
+                      <form onSubmit={handleChangePassword} className="p-4 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 space-y-2">
                         <input
                           type="password"
                           value={pw.oldPassword}
                           onChange={(e) => setPw({ ...pw, oldPassword: e.target.value })}
                           placeholder="Current password"
-                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                          className="w-full px-4 py-2.5 bg-white dark:bg-stone-900 text-gray-800 dark:text-stone-100 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-orange-500"
                           required
                         />
                         <input
@@ -387,7 +387,7 @@ const Profile = () => {
                           value={pw.newPassword}
                           onChange={(e) => setPw({ ...pw, newPassword: e.target.value })}
                           placeholder="New password (min 6 chars)"
-                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                          className="w-full px-4 py-2.5 bg-white dark:bg-stone-900 text-gray-800 dark:text-stone-100 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-orange-500"
                           required
                         />
                         <button className="bg-green-600 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-green-700">Update password</button>
@@ -395,10 +395,10 @@ const Profile = () => {
                     )}
 
                     {openPanel === 'notif' && item.id === 'notif' && (
-                      <div className="p-4 border-t bg-gray-50 space-y-2">
-                        {[['order', 'Order status updates'], ['offers', 'Offers & promos']].map(([key, label]) => (
-                          <button key={key} onClick={() => toggleNotif(key)} className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold">
-                            {label}
+                      <div className="p-4 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 space-y-2">
+                        {[['order', 'Order status updates', 'Live tracking + delivery alerts'], ['offers', 'Offers & promos', 'Discounts, new restaurants, weekend deals']].map(([key, label, desc]) => (
+                          <button key={key} onClick={() => toggleNotif(key)} className="w-full flex items-center justify-between bg-white dark:bg-stone-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 dark:text-stone-100">
+                            <span className="text-left"><span className="block">{label}</span><span className="block text-[11px] font-medium text-gray-500 dark:text-gray-400">{desc}</span></span>
                             <span className={`w-10 h-6 rounded-full transition relative ${notif[key] ? 'bg-green-500' : 'bg-gray-300'}`}>
                               <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${notif[key] ? 'left-[18px]' : 'left-0.5'}`} />
                             </span>

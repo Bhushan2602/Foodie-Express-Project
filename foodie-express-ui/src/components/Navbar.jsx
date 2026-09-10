@@ -19,11 +19,17 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [dark, setDark] = useState(() => localStorage.getItem('foodie_theme') === 'dark');
+  const [uiTheme, setUiTheme] = useState(() => localStorage.getItem('foodie_ui_theme') || 'sunset');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('foodie_theme', dark ? 'dark' : 'light');
   }, [dark]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = uiTheme === 'liquid' ? 'liquid' : 'sunset';
+    localStorage.setItem('foodie_ui_theme', uiTheme);
+  }, [uiTheme]);
 
   const dropdownRef = useRef(null);
   const cityRef = useRef(null);
@@ -111,17 +117,17 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
           <div className="relative border-l pl-4 border-gray-200 hidden md:block" ref={cityRef}>
             <button
               onClick={() => setIsCityOpen(!isCityOpen)}
-              className="flex items-center gap-1.5 hover:bg-gray-50 px-3 py-2 rounded-xl transition border border-transparent hover:border-gray-100 group"
+              className="flex items-center gap-1.5 hover:bg-gray-50 dark:hover:bg-white/10 px-3 py-2 rounded-xl transition border border-transparent hover:border-gray-100 dark:hover:border-white/10 group"
             >
               <MapPin size={16} className="text-orange-500 flex-shrink-0" />
-              <span className="text-sm font-bold text-gray-700 group-hover:text-orange-600 max-w-[120px] truncate">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 max-w-[120px] truncate">
                 {selectedCity === "All" ? "All Cities" : selectedCity}
               </span>
               <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isCityOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isCityOpen && (
-              <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 max-h-80 overflow-y-auto">
+              <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-stone-900 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 max-h-80 overflow-y-auto">
                 <div className="py-2">
                   {cities.map((city) => (
                     <button
@@ -131,7 +137,7 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
                         setIsCityOpen(false);
                       }}
                       className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition ${
-                        selectedCity === city ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-50'
+                        selectedCity === city ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
                       }`}
                     >
                       {city === 'All' ? 'All Cities' : city} {selectedCity === city && <Check size={14} />}
@@ -156,6 +162,20 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 ml-auto">
+          <div className="hidden xl:flex items-center bg-gray-100 dark:bg-white/10 rounded-xl p-1 text-[11px] font-black">
+            <button
+              onClick={() => setUiTheme('sunset')}
+              className={`px-3 py-1.5 rounded-lg transition ${uiTheme === 'sunset' ? 'bg-white dark:bg-stone-900 text-orange-600 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
+            >
+              Sunset
+            </button>
+            <button
+              onClick={() => setUiTheme('liquid')}
+              className={`px-3 py-1.5 rounded-lg transition ${uiTheme === 'liquid' ? 'bg-white dark:bg-stone-900 text-sky-600 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
+            >
+              Liquid Glass
+            </button>
+          </div>
           <button
             onClick={() => setDark((d) => !d)}
             aria-label="Toggle theme"
@@ -163,13 +183,13 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          <Link to="/explore" className="hidden md:flex items-center gap-1.5 text-gray-600 hover:text-orange-500 transition font-medium text-sm no-underline">
+          <Link to="/explore" className="hidden md:flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition font-medium text-sm no-underline">
             <Compass size={18} />
             <span className="hidden xl:inline">Explore</span>
           </Link>
 
           {canOrder && (
-          <Link to="/cart" className="relative text-gray-600 hover:text-orange-500 transition no-underline">
+          <Link to="/cart" className="relative text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition no-underline">
             <ShoppingBag size={20} />
             {cart.length > 0 && (
               <motion.span
@@ -263,7 +283,14 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
 
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-2">
+        <div className="md:hidden border-t border-gray-100 dark:border-white/10 bg-white dark:bg-stone-950 px-4 py-4 space-y-2">
+          <div className="flex items-center gap-2 px-1 pb-1">
+            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">Theme</span>
+            <div className="flex items-center bg-gray-100 dark:bg-white/10 rounded-xl p-1 text-[11px] font-black ml-auto">
+              <button onClick={() => setUiTheme('sunset')} className={`px-3 py-1.5 rounded-lg ${uiTheme === 'sunset' ? 'bg-white dark:bg-stone-900 text-orange-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>Sunset</button>
+              <button onClick={() => setUiTheme('liquid')} className={`px-3 py-1.5 rounded-lg ${uiTheme === 'liquid' ? 'bg-white dark:bg-stone-900 text-sky-600 shadow' : 'text-gray-500 dark:text-gray-400'}`}>Liquid</button>
+            </div>
+          </div>
           <Link to="/explore" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl no-underline transition">
             <Compass size={18} /> Explore
           </Link>

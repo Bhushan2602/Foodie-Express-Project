@@ -12,6 +12,15 @@
   --radius-2xl: 20px;
   --shadow-card: 0 1px 2px rgba(28, 25, 23, 0.05), 0 8px 24px -12px rgba(28, 25, 23, 0.18);
   --shadow-pop: 0 12px 40px -12px rgba(234, 88, 12, 0.35);
+  --ease-fluid: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Liquid Glass theme (iOS-style second theme) */
+[data-theme="liquid"] {
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --shadow-card: 0 8px 32px -12px rgba(59, 130, 246, 0.25), 0 2px 8px rgba(28, 25, 23, 0.06);
+  --shadow-pop: 0 16px 48px -12px rgba(59, 130, 246, 0.45);
 }
 
 @keyframes shimmer {
@@ -60,10 +69,24 @@
     @apply bg-gray-50 text-gray-900 dark:bg-stone-950 dark:text-stone-100;
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
+    transition: background-color 0.3s var(--ease-fluid), color 0.3s var(--ease-fluid);
+  }
+
+  /* Dark-mode form legibility (profile edit / password inputs were invisible) */
+  .dark input, .dark textarea, .dark select {
+    color-scheme: dark;
+  }
+  input, textarea, select {
+    transition: border-color 0.2s var(--ease-fluid), box-shadow 0.2s var(--ease-fluid), background-color 0.2s var(--ease-fluid);
   }
 
   ::selection {
     @apply bg-orange-200 text-orange-900;
+  }
+
+  /* Dark-mode hover legibility for nav/menu items using light-only hovers */
+  .dark .hover-bg-fix:hover {
+    @apply bg-white/10;
   }
 }
 
@@ -114,8 +137,45 @@
   .btn-primary:hover { @apply bg-orange-600; }
 
   .card {
-    @apply bg-white rounded-2xl border border-gray-100;
+    @apply bg-white rounded-2xl border border-gray-100 dark:bg-stone-900 dark:border-white/10;
     box-shadow: var(--shadow-card);
+    transition: transform 0.35s var(--ease-fluid), box-shadow 0.35s var(--ease-fluid), background-color 0.3s;
+  }
+
+  /* 3D eye-catch hover for restaurant cards (both themes) */
+  .lift-3d {
+    transform-style: preserve-3d;
+    perspective: 900px;
+    transition: transform 0.35s var(--ease-fluid), box-shadow 0.35s var(--ease-fluid);
+  }
+  .lift-3d:hover {
+    transform: translateY(-8px) scale(1.015) rotateX(2deg);
+    box-shadow: 0 24px 48px -16px rgba(28, 25, 23, 0.3), var(--shadow-pop);
+  }
+  .lift-3d img {
+    transition: transform 0.6s var(--ease-fluid);
+  }
+  .lift-3d:hover img {
+    transform: scale(1.08);
+  }
+
+  /* Liquid Glass theme: translucent saturated cards + gradient buttons */
+  [data-theme="liquid"] .card {
+    @apply border-white/40 dark:border-white/15;
+    background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
+    backdrop-filter: blur(20px) saturate(1.4);
+  }
+  [data-theme="liquid"] .dark .card, .dark [data-theme="liquid"] .card {
+    background: linear-gradient(135deg, rgba(28,25,23,0.85), rgba(28,25,23,0.6));
+  }
+  [data-theme="liquid"] .btn-primary {
+    background: linear-gradient(135deg, #38bdf8, #818cf8, #e879f9);
+  }
+  [data-theme="liquid"] .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+  [data-theme="liquid"] .glass {
+    backdrop-filter: blur(24px) saturate(1.6);
   }
 
   .text-gradient {

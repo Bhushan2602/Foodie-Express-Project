@@ -91,6 +91,13 @@ const AnimatedRoutes = ({ selectedCity, setSelectedCity }) => {
 function App() {
   const [selectedCity, setSelectedCity] = useState("All");
 
+  useEffect(() => {
+    if (localStorage.getItem('foodie_theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+    document.documentElement.dataset.theme = localStorage.getItem('foodie_ui_theme') === 'liquid' ? 'liquid' : 'sunset';
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

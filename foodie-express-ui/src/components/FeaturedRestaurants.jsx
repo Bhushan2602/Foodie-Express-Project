@@ -36,7 +36,7 @@ const FeaturedRestaurants = ({ restaurants }) => {
               className="flex-shrink-0 w-64 md:w-72"
             >
               <Link to={`/restaurant/${restaurant.id}`} className="block no-underline group">
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div className="bg-white dark:bg-stone-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-xl transition-all duration-300 lift-3d">
                   <div className="relative h-40 overflow-hidden bg-gray-100">
                     <img
                       src={restaurant.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
