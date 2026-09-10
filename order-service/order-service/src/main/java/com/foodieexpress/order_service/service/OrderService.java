@@ -105,7 +105,33 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
         order.setAssignedDeliveryPartner(deliveryPartnerEmail);
+        order.setStatus("READY");
+        return orderRepository.save(order);
+    }
+
+    public FoodOrder acceptOrder(Long orderId, String deliveryPartnerEmail) {
+        FoodOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        if (!"READY".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Only READY orders can be accepted (current: " + order.getStatus() + ")");
+        }
+        if (order.getAssignedDeliveryPartner() != null
+                && !order.getAssignedDeliveryPartner().equalsIgnoreCase(deliveryPartnerEmail)) {
+            throw new RuntimeException("Order is assigned to another partner");
+        }
+        order.setAssignedDeliveryPartner(deliveryPartnerEmail);
         order.setStatus("ON THE WAY");
+        return orderRepository.save(order);
+    }
+
+    public FoodOrder declineOrder(Long orderId, String deliveryPartnerEmail) {
+        FoodOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        if (!"READY".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Only READY orders can be declined (current: " + order.getStatus() + ")");
+        }
+        order.setAssignedDeliveryPartner(null);
+        order.setStatus("READY");
         return orderRepository.save(order);
     }
 

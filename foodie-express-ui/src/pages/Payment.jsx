@@ -79,6 +79,8 @@ const Payment = () => {
       taxAmount,
       promoCode: promo?.code || null,
       discountAmount: promoDiscount,
+      deliverySlot: promo?.deliverySlot || 'NOW',
+      scheduledFor: promo?.scheduledFor || null,
       razorpayOrderId,
       razorpayPaymentId,
       razorpaySignature,
@@ -175,6 +177,8 @@ const Payment = () => {
         taxAmount,
         promoCode: promo?.code || null,
         discountAmount: promoDiscount,
+        deliverySlot: promo?.deliverySlot || 'NOW',
+        scheduledFor: promo?.scheduledFor || null,
         paymentMethod: 'cod',
       });
 
@@ -216,6 +220,12 @@ const Payment = () => {
           <ShieldCheck className="text-green-500" size={32} />
           <h1 className="text-3xl font-black text-gray-900">Secure Payment</h1>
         </div>
+
+        {promo?.deliverySlot === 'LATER' && promo?.scheduledFor && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 text-sm font-bold text-blue-800">
+            🕒 Scheduled delivery: {new Date(promo.scheduledFor).toLocaleString()}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 

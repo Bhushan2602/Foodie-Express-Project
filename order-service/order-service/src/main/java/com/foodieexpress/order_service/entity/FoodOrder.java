@@ -61,4 +61,9 @@ public class FoodOrder {
     private Double deliveryFee;
 
     private Double taxAmount;
+
+    // Scheduled delivery: NOW or LATER + requested time
+    private String deliverySlot = "NOW";
+
+    private LocalDateTime scheduledFor;
 }

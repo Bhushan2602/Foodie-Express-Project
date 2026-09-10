@@ -67,19 +67,19 @@ export const CartProvider = ({ children }) => {
     // 1. If cart has items, check if the CITY is different
     if (cart.length > 0 && cart[0].city !== city) {
       toast((t) => (
-        <div className="flex flex-col gap-4">
-          <div className="text-sm text-gray-800 leading-relaxed">
-            Your cart contains food from <span className="font-black text-orange-600">{cart[0].city}</span>. 
-            <br/><br/>
-            Would you like to clear your cart to order from <span className="font-black text-orange-600">{city}</span> instead?
+        <div className="flex flex-col gap-4 min-w-[260px]">
+          <div className="text-sm text-white leading-relaxed">
+            Your cart contains food from <span className="font-black text-orange-400">{cart[0].city}</span>.
+            <br /><br />
+            Clear your cart to order from <span className="font-black text-orange-400">{city}</span> instead?
           </div>
-          
+
           <div className="flex gap-2 mt-2">
             <button
               onClick={() => {
-                toast.dismiss(t.id); 
+                toast.dismiss(t.id);
                 // Clear old cart and add new item with its city
-                const cartItem = { ...item, restaurantName, city, cartId: Date.now() }; 
+                const cartItem = { ...item, restaurantName, city, cartId: Date.now() };
                 setCart([cartItem]);
                 toast.success(`Cart cleared! Added ${item.name} from ${city} 🍔`);
               }}
@@ -92,14 +92,14 @@ export const CartProvider = ({ children }) => {
                 toast.dismiss(t.id);
                 toast("Okay, kept your original cart!", { icon: '🛒' });
               }}
-              className="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-gray-200 transition flex-1"
+              className="bg-white/10 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-white/20 transition flex-1"
             >
               Cancel
             </button>
           </div>
         </div>
-      ), { duration: 10000, position: 'top-center' });
-      
+      ), { duration: 10000, position: 'top-center', style: { background: '#1c1917', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' } });
+
       return; // Stop execution!
     }
 

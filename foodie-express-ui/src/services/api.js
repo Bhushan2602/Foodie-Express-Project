@@ -75,6 +75,8 @@ export const orderService = {
     getAllOrders: () => API.get('/orders/all'),
     updateOrderStatus: (id, status) => API.put(`/orders/${id}/status?status=${status}`),
     assignDeliveryPartner: (id, email) => API.put(`/orders/${id}/assign?deliveryPartnerEmail=${email}`),
+    acceptOrder: (id, email) => API.put(`/orders/${id}/accept?deliveryPartnerEmail=${email}`),
+    declineOrder: (id, email) => API.put(`/orders/${id}/decline?deliveryPartnerEmail=${email}`),
     getDeliveryPartnerOrders: (email) => API.get(`/orders/assigned/${email}`),
     getRestaurantOrders: (name) => API.get(`/orders/restaurant/${name}`),
 };

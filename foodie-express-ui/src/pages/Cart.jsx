@@ -26,6 +26,13 @@ const Cart = () => {
   const [promoValidating, setPromoValidating] = useState(false);
   const [selectedTip, setSelectedTip] = useState(0);
   const [deliverySlot, setDeliverySlot] = useState('now');
+  const [scheduledFor, setScheduledFor] = useState('');
+
+  const minSchedule = (() => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  })();
 
   const groupedCart = cart.reduce((acc, item) => {
     let resGroup = acc.find(g => g.restaurantName === item.restaurantName);
@@ -109,9 +116,18 @@ const Cart = () => {
       return;
     }
     if (cart.length === 0) return;
+    if (deliverySlot === 'later' && !scheduledFor) {
+      toast.error("Pick a delivery date & time for scheduled orders.");
+      return;
+    }
+    if (deliverySlot === 'later' && new Date(scheduledFor).getTime() < Date.now() + 30 * 60 * 1000) {
+      toast.error("Scheduled time must be at least 30 minutes from now.");
+      return;
+    }
     // Carry pricing breakdown to payment (server re-validates promo)
     sessionStorage.setItem('foodie_promo', JSON.stringify({
       code: appliedPromo, discount, itemTotal, deliveryFee: totalDeliveryFee, tax: taxesAndCharges,
+      deliverySlot: deliverySlot.toUpperCase(), scheduledFor: deliverySlot === 'later' ? new Date(scheduledFor).toISOString() : null,
     }));
     navigate('/payment');
   };
@@ -176,6 +192,21 @@ const Cart = () => {
                 </button>
               ))}
             </div>
+            {deliverySlot === 'later' && (
+              <div className="mt-3">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-wider block mb-1.5">
+                  When should we deliver?
+                </label>
+                <input
+                  type="datetime-local"
+                  value={scheduledFor}
+                  min={minSchedule}
+                  onChange={(e) => setScheduledFor(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500"
+                  required
+                />
+              </div>
+            )}
           </div>
 
           {/* Multi-restaurant Warning */}

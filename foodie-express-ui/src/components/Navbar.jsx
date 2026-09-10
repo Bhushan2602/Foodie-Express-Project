@@ -74,8 +74,8 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const handleLogout = () => {
     setIsDropdownOpen(false);
     toast((t) => (
-      <div className="flex flex-col gap-3">
-        <span className="font-medium text-gray-800">Ready to leave Foodie Express? 🌯</span>
+      <div className="flex flex-col gap-3 min-w-[240px]">
+        <span className="font-bold text-white">Ready to leave Foodie Express? 🌯</span>
         <div className="flex gap-2">
           <button
             onClick={() => {
@@ -88,12 +88,12 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
           >
             Yes, Logout
           </button>
-          <button onClick={() => toast.dismiss(t.id)} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
+          <button onClick={() => toast.dismiss(t.id)} className="bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/20 transition">
             Cancel
           </button>
         </div>
       </div>
-    ), { duration: 6000, position: 'top-center' });
+    ), { duration: 6000, position: 'top-center', style: { background: '#1c1917', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' } });
   };
 
   const cities = ["All", "Hyderabad", "Mumbai", "Delhi", "Bangalore", "Pune", "Kolkata", "Chennai", "Jaipur", "Ahmedabad", "Lucknow", "Goa", "Chandigarh", "Jalgaon"];

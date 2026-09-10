@@ -47,13 +47,29 @@ public class OrderController {
         return ResponseEntity.ok(updatedOrder);
     }
 
-    // 5. Assign delivery partner to order
+    // 5. Assign delivery partner to order (sets READY, awaiting partner accept)
     @PutMapping("/{id}/assign")
     public ResponseEntity<FoodOrder> assignDeliveryPartner(
             @PathVariable Long id,
             @RequestParam String deliveryPartnerEmail) {
         FoodOrder updatedOrder = orderService.assignDeliveryPartner(id, deliveryPartnerEmail);
         return ResponseEntity.ok(updatedOrder);
+    }
+
+    // 5b. Partner accepts an assigned READY order
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<FoodOrder> acceptOrder(
+            @PathVariable Long id,
+            @RequestParam String deliveryPartnerEmail) {
+        return ResponseEntity.ok(orderService.acceptOrder(id, deliveryPartnerEmail));
+    }
+
+    // 5c. Partner declines — order returns to READY pool for reassignment
+    @PutMapping("/{id}/decline")
+    public ResponseEntity<FoodOrder> declineOrder(
+            @PathVariable Long id,
+            @RequestParam String deliveryPartnerEmail) {
+        return ResponseEntity.ok(orderService.declineOrder(id, deliveryPartnerEmail));
     }
 
     // 6. Get orders assigned to a delivery partner

@@ -2,7 +2,9 @@ import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { orderService, restaurantService, authService } from '../services/api';
-import { Store, Clock, CheckCircle2, Truck, Package, RefreshCw, IndianRupee, UtensilsCrossed, ListOrdered } from 'lucide-react';
+import { salesByDay, ordersByDay, statusSplit } from '../utils/salesAnalytics';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Store, Clock, CheckCircle2, Truck, Package, RefreshCw, IndianRupee, UtensilsCrossed, ListOrdered, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import MenuManager from '../components/MenuManager';
 
@@ -58,11 +60,18 @@ const RestaurantOwnerDashboard = () => {
     const pending = orders.filter(o => o.status?.toUpperCase() === 'PENDING').length;
     const preparing = orders.filter(o => o.status?.toUpperCase() === 'PREPARING').length;
     const delivered = orders.filter(o => o.status?.toUpperCase() === 'DELIVERED').length;
-    const revenue = orders
-      .filter(o => o.status?.toUpperCase() === 'DELIVERED')
-      .reduce((s, o) => s + (o.totalAmount || 0), 0);
-    return { total, pending, preparing, delivered, revenue };
+    const deliveredOrders = orders.filter(o => o.status?.toUpperCase() === 'DELIVERED');
+    const revenue = deliveredOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const paid = orders.filter(o => o.paymentStatus === 'PAID').length;
+    const unpaid = total - paid;
+    const avgOrder = delivered ? Math.round(revenue / delivered) : 0;
+    return { total, pending, preparing, delivered, revenue, paid, unpaid, avgOrder };
   }, [orders]);
+
+  const salesData = useMemo(() => salesByDay(orders), [orders]);
+  const ordersData = useMemo(() => ordersByDay(orders), [orders]);
+  const statusData = useMemo(() => statusSplit(orders), [orders]);
+  const PIE_COLORS = ['#f97316', '#3b82f6', '#22c55e', '#06b6d4', '#a855f7', '#eab308'];
 
   const handleMarkPreparing = async (orderId) => {
     try {
@@ -80,13 +89,13 @@ const RestaurantOwnerDashboard = () => {
       const partners = partnersRes.data;
       if (partners.length === 0) {
         toast.error("No delivery partners available. Order marked as Ready.");
-        await orderService.updateOrderStatus(orderId, 'ON THE WAY');
+        await orderService.updateOrderStatus(orderId, 'READY');
         fetchOrders();
         return;
       }
       const assignedPartner = partners[Math.floor(Math.random() * partners.length)];
       await orderService.assignDeliveryPartner(orderId, assignedPartner);
-      toast.success(`Order #${orderId} ready! Assigned to ${assignedPartner}`);
+      toast.success(`Order #${orderId} ready! Sent to ${assignedPartner} for acceptance.`);
       fetchOrders();
     } catch {
       toast.error("Failed to update status");
@@ -144,6 +153,7 @@ const RestaurantOwnerDashboard = () => {
         <div className="flex gap-2 mb-8">
           {[
             { id: 'orders', label: 'Orders', icon: ListOrdered },
+            { id: 'analytics', label: 'Sales Analytics', icon: BarChart3 },
             { id: 'menu', label: 'Menu Manager', icon: UtensilsCrossed },
           ].map(tab => (
             <button
@@ -208,14 +218,20 @@ const RestaurantOwnerDashboard = () => {
                             <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-md border ${
                               currentStatus === 'DELIVERED' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
                               currentStatus === 'ON THE WAY' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                              currentStatus === 'READY' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' :
                               currentStatus === 'PREPARING' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
                               'bg-orange-500/10 text-orange-400 border-orange-500/20'
                             }`}>
-                              {currentStatus}
+                              {currentStatus === 'READY' ? (order.assignedDeliveryPartner ? 'READY · AWAITING PARTNER' : 'READY · UNASSIGNED') : currentStatus}
                             </span>
                             {order.assignedDeliveryPartner && (
                               <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1">
                                 <Truck size={10} /> {order.assignedDeliveryPartner}
+                              </span>
+                            )}
+                            {order.deliverySlot === 'LATER' && order.scheduledFor && (
+                              <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
+                                🕒 {new Date(order.scheduledFor).toLocaleString()}
                               </span>
                             )}
                           </div>
@@ -262,6 +278,62 @@ const RestaurantOwnerDashboard = () => {
               )}
             </div>
           </>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { label: 'Avg Order Value', value: `₹${stats.avgOrder}` },
+                { label: 'Paid Orders', value: stats.paid },
+                { label: 'Unpaid (COD pending)', value: stats.unpaid },
+              ].map((c) => (
+                <div key={c.label} className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+                  <p className="text-gray-400 text-[10px] font-black uppercase tracking-wider mb-1">{c.label}</p>
+                  <p className="text-xl font-black text-white">{c.value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+                <h3 className="font-black text-white mb-4">Sales — last 7 days (delivered)</h3>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={salesData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis dataKey="day" stroke="#71717a" fontSize={12} />
+                    <YAxis stroke="#71717a" fontSize={12} />
+                    <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12 }} />
+                    <Bar dataKey="sales" fill="#f97316" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+                <h3 className="font-black text-white mb-4">Orders — last 7 days</h3>
+                <ResponsiveContainer width="100%" height={240}>
+                  <LineChart data={ordersData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis dataKey="day" stroke="#71717a" fontSize={12} />
+                    <YAxis stroke="#71717a" fontSize={12} allowDecimals={false} />
+                    <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12 }} />
+                    <Line type="monotone" dataKey="orders" stroke="#3b82f6" strokeWidth={3} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+              <h3 className="font-black text-white mb-4">Orders by status</h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart>
+                  <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={90} label>
+                    {statusData.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
 
         {activeTab === 'menu' && selectedRestaurantId && (
