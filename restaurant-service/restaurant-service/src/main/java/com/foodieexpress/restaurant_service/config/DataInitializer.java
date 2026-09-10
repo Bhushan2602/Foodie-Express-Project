@@ -526,8 +526,35 @@ public class DataInitializer implements CommandLineRunner {
                 double avg = r.getMenu().stream().mapToDouble(m -> m.getPrice()).average().orElse(200);
                 r.setCostForTwo(((int) Math.ceil(avg * 2 / 50)) * 50);
             }
+            // Dish images: assign by keyword so every dish renders a real photo
+            if (r.getMenu() != null) {
+                for (MenuItem m : r.getMenu()) {
+                    if (m.getImageUrl() == null || m.getImageUrl().isBlank()) {
+                        m.setImageUrl(dishImage(m.getName()));
+                    }
+                    if (m.getId() == null || m.getId().isBlank()) {
+                        m.setId(java.util.UUID.randomUUID().toString().substring(0, 8));
+                    }
+                }
+            }
         }
 
         restaurantRepository.saveAll(restaurants);
+    }
+
+    private static String dishImage(String name) {
+        String n = name == null ? "" : name.toLowerCase();
+        String base = "https://images.unsplash.com/";
+        String params = "?q=80&w=400&auto=format&fit=crop";
+        if (n.contains("biryani") || n.contains("pulao")) return base + "photo-1563379091339-03b21ab4a4f8" + params;
+        if (n.contains("pizza")) return base + "photo-1565299624946-b28f40a0ae38" + params;
+        if (n.contains("dosa") || n.contains("idli") || n.contains("uttapam")) return base + "photo-1589301760014-d929f3979dbc" + params;
+        if (n.contains("burger") || n.contains("frankie") || n.contains("vada pav") || n.contains("sandwich")) return base + "photo-1568901346375-23c9450c58cd" + params;
+        if (n.contains("noodle") || n.contains("hakka") || n.contains("manchurian") || n.contains("chinese") || n.contains("momos")) return base + "photo-1585032226651-759b368d7246" + params;
+        if (n.contains("butter chicken") || n.contains("korma") || n.contains("curry") || n.contains("dal") || n.contains("paneer") || n.contains("thali")) return base + "photo-1567188040759-fb8a883dc6d8" + params;
+        if (n.contains("tandoori") || n.contains("kebab") || n.contains("tikka") || n.contains("grill")) return base + "photo-1555939594-58d7cb561ad1" + params;
+        if (n.contains("dessert") || n.contains("ice cream") || n.contains("cake") || n.contains("gulab") || n.contains("rasmalai") || n.contains("chai") || n.contains("coffee") || n.contains("lassi")) return base + "photo-1551024506-0bccd828d307" + params;
+        if (n.contains("naan") || n.contains("roti") || n.contains("paratha") || n.contains("pav bhaji")) return base + "photo-1565557623262-b51c2513a641" + params;
+        return base + "photo-1546069901-ba9599a7e63c" + params;
     }
 }

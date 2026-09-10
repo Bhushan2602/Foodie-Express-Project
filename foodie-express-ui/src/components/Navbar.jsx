@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { ShoppingBag, User, Utensils, Package, LogOut, Heart, MapPin, ChevronDown, Check, LayoutDashboard, UserCircle, Compass, Menu, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ShoppingBag, User, Utensils, Package, LogOut, Heart, MapPin, ChevronDown, Check, LayoutDashboard, UserCircle, Compass, Menu, X, Command } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import React from 'react';
 import SearchBar from './SearchBar';
+import SearchPalette from './SearchPalette';
 
 const Navbar = ({ selectedCity, setSelectedCity }) => {
   const { cart } = useCart();
@@ -15,6 +17,7 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const dropdownRef = useRef(null);
   const cityRef = useRef(null);
@@ -42,8 +45,18 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
         setIsCityOpen(false);
       }
     };
+    const handleKeys = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeys);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeys);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -76,7 +89,8 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const canOrder = !user || user.role === 'ROLE_USER';
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100">
+      <SearchPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} selectedCity={selectedCity} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-4">
         
         {/* Left: Logo & City */}
@@ -124,8 +138,14 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
         </div>
 
         {/* Center: Search (desktop) */}
-        <div className="hidden lg:block flex-1 max-w-xl mx-4">
-          <SearchBar selectedCity={selectedCity} />
+        <div className="hidden lg:flex flex-1 max-w-xl mx-4 items-center gap-2">
+          <div className="flex-1"><SearchBar selectedCity={selectedCity} /></div>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-black text-gray-500 bg-gray-100 hover:bg-orange-100 hover:text-orange-600 px-3 py-2.5 rounded-xl transition"
+          >
+            <Command size={13} /> K
+          </button>
         </div>
 
         {/* Right: Actions */}
@@ -139,9 +159,15 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
           <Link to="/cart" className="relative text-gray-600 hover:text-orange-500 transition no-underline">
             <ShoppingBag size={20} />
             {cart.length > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse-glow">
+              <motion.span
+                key={cart.length}
+                initial={{ scale: 0.4 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+                className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center"
+              >
                 {cart.length}
-              </span>
+              </motion.span>
             )}
           </Link>
           )}

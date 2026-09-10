@@ -14,4 +14,6 @@ public class PromoValidationRequest {
 
     @Min(value = 0, message = "Delivery fee must be >= 0")
     private double deliveryFee;
+
+    private String customerEmail;
 }

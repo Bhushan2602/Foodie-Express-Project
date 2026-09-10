@@ -68,7 +68,7 @@ const Cart = () => {
     if (!code) return;
     setPromoValidating(true);
     try {
-      const { data } = await orderService.validatePromo({ code, itemTotal, deliveryFee: totalDeliveryFee });
+      const { data } = await orderService.validatePromo({ code, itemTotal, deliveryFee: totalDeliveryFee, customerEmail: user?.email || null });
       if (!data.valid) {
         toast.error(data.message || 'Invalid promo code');
         return;

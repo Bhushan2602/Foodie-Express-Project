@@ -31,7 +31,8 @@ public class PromoController {
 
     @PostMapping("/validate")
     public ResponseEntity<PromoValidationResponse> validate(@Valid @RequestBody PromoValidationRequest req) {
-        PromoService.ValidationResult result = promoService.validate(req.getCode(), req.getItemTotal(), req.getDeliveryFee());
+        PromoService.ValidationResult result = promoService.validate(
+                req.getCode(), req.getItemTotal(), req.getDeliveryFee(), req.getCustomerEmail(), false);
         return ResponseEntity.ok(new PromoValidationResponse(result.valid(), result.discount(), result.message()));
     }
 }

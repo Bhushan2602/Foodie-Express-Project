@@ -255,6 +255,16 @@ const RestaurantDetail = () => {
                   <p className="text-gray-400 text-xs mt-1 line-clamp-1 hidden sm:block">{item.description}</p>
                 </div>
 
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&auto=format&fit=crop"; }}
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover flex-shrink-0 bg-gray-100"
+                  />
+                )}
+
                 <div className="flex-shrink-0">
                   {!canOrder ? (
                     <span className="text-[11px] font-black text-gray-400 bg-gray-100 px-4 py-2.5 rounded-xl uppercase tracking-wider">

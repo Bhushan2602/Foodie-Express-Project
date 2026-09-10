@@ -37,7 +37,9 @@ public class OrderService {
 
         double discount = 0;
         if (order.getPromoCode() != null && !order.getPromoCode().isBlank()) {
-            PromoService.ValidationResult result = promoService.validate(order.getPromoCode(), itemTotal, deliveryFee);
+            boolean hasPrior = !orderRepository.findByUserEmail(order.getUserEmail()).isEmpty();
+            PromoService.ValidationResult result = promoService.validate(
+                    order.getPromoCode(), itemTotal, deliveryFee, order.getUserEmail(), hasPrior);
             if (!result.valid()) {
                 throw new RuntimeException("Promo rejected: " + result.message());
             }
