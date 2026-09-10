@@ -25,7 +25,8 @@ services:
       test: echo 'db.runCommand("ping").ok' | mongosh --quiet
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 40s
 
   redis:
     image: redis:7-alpine
