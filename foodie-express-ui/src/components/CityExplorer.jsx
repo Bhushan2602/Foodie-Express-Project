@@ -3,19 +3,21 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, ChevronRight } from 'lucide-react';
 
+const FALLBACK_CITY = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop";
+
 const cities = [
-  { name: "Hyderabad", image: "https://images.unsplash.com/photo-1631515243349-e8cb16d260eb?q=80&w=400", restaurants: "500+", tagline: "City of Biryani" },
+  { name: "Hyderabad", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=400&auto=format&fit=crop", restaurants: "500+", tagline: "City of Biryani" },
   { name: "Mumbai", image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=400", restaurants: "800+", tagline: "Street Food Capital" },
-  { name: "Delhi", image: "https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?q=80&w=400", restaurants: "700+", tagline: "Mughlai Paradise" },
+  { name: "Delhi", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=400&auto=format&fit=crop", restaurants: "700+", tagline: "Mughlai Paradise" },
   { name: "Bangalore", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=400", restaurants: "600+", tagline: "Garden City Food" },
   { name: "Pune", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=400", restaurants: "350+", tagline: "Oxford of the East" },
   { name: "Kolkata", image: "https://images.unsplash.com/photo-1567337710282-00832b415979?q=80&w=400", restaurants: "400+", tagline: "City of Joy" },
-  { name: "Chennai", image: "https://images.unsplash.com/photo-1630383249896-424e482df921?q=80&w=400", restaurants: "380+", tagline: "Temple of Food" },
+  { name: "Chennai", image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=400&auto=format&fit=crop", restaurants: "380+", tagline: "Temple of Food" },
   { name: "Jaipur", image: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?q=80&w=400", restaurants: "250+", tagline: "Pink City Flavors" },
-  { name: "Ahmedabad", image: "https://images.unsplash.com/photo-1606491956689-2ea866880049?q=80&w=400", restaurants: "300+", tagline: "Foodie's Paradise" },
+  { name: "Ahmedabad", image: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=400&auto=format&fit=crop", restaurants: "300+", tagline: "Foodie's Paradise" },
   { name: "Lucknow", image: "https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=400", restaurants: "280+", tagline: "Nawabi Cuisine" },
   { name: "Goa", image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=400", restaurants: "200+", tagline: "Coastal Delights" },
-  { name: "Chandigarh", image: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?q=80&w=400", restaurants: "180+", tagline: "City Beautiful Eats" },
+  { name: "Chandigarh", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=400&auto=format&fit=crop", restaurants: "180+", tagline: "City Beautiful Eats" },
 ];
 
 const CityExplorer = ({ onSelectCity }) => {
@@ -43,12 +45,17 @@ const CityExplorer = ({ onSelectCity }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
               whileHover={{ y: -6 }}
-              onClick={() => navigate(`/explore?city=${city.name}`)}
-              className="group relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onClick={() => {
+                onSelectCity?.(city.name);
+                navigate(`/explore?city=${city.name}`);
+              }}
+              className="group relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer bg-gray-100 lift-3d"
             >
               <img
                 src={city.image}
                 alt={city.name}
+                loading="lazy"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_CITY; }}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
