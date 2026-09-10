@@ -286,7 +286,7 @@ restaurants (collection)
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-github-username>/Foodie-Express-Project.git
+git clone https://github.com/Bhushan2602/Foodie-Express-Project.git
 cd Foodie-Express-Project
 # Copy env template and fill in secrets (never commit .env)
 cp .env.example .env
@@ -422,9 +422,11 @@ Foodie-Express-Project/
 
 ## 📸 Screenshots
 
-> Screenshots coming soon. Run the project locally to see the full UI.
-
----
+![Home](docs/01-home.png)
+![Explore](docs/02-explore.png)
+![Restaurant + Cart](docs/03-restaurant-cart.png)
+![Admin Dashboard](docs/04-admin.png)
+![Swagger](docs/05-swagger.png)---
 
 ## 🔮 Future Scope
 
@@ -443,10 +445,10 @@ Foodie-Express-Project/
 
 ## 👨‍💻 Author
 
-**Your Name** — Full Stack Developer (replace with your name before adding to resume)
+**Bhushan Mahajan** — Full Stack Developer 
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/<your-linkedin>)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github)](https://github.com/<your-github-username>)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/bhushan-mahajan-379349298/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github)](https://github.com/Bhushan2602)
 
 ---
 
