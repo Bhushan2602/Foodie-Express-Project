@@ -49,6 +49,8 @@ export const authService = {
     login: (creds) => API.post('/auth/login', creds),
     register: (data) => API.post('/auth/register', data),
     getDeliveryPartners: () => API.get('/auth/delivery-partners'),
+    updateProfile: (data) => API.put('/auth/profile', data),
+    changePassword: (data) => API.put('/auth/password', data),
 };
 
 export const restaurantService = {

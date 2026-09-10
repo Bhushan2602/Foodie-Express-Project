@@ -111,6 +111,7 @@ const RestaurantDetail = () => {
       <div className="relative h-64 md:h-[420px] w-full">
         <img
           src={restaurant.imageUrl || "https://images.unsplash.com/photo-1504674900247-0877df9cc836"}
+          onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop"; }}
           className="w-full h-full object-cover brightness-[0.6]"
           alt={restaurant.name}
         />

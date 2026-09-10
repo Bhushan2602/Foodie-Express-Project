@@ -139,7 +139,7 @@ const SearchBar = ({ onSearch, selectedCity = 'All' }) => {
                     className="flex items-center gap-3 w-full px-3 py-3 hover:bg-orange-50 rounded-xl transition text-left"
                   >
                     <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
-                      <img src={r.imageUrl} alt={r.name} className="w-full h-full object-cover" />
+                      <img src={r.imageUrl} alt={r.name} onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=200&auto=format&fit=crop"; }} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm text-gray-800 truncate">{r.name}</p>

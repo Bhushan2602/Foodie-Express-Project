@@ -52,6 +52,29 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateProfile(String email, String fullName) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+        if (fullName == null || fullName.isBlank()) {
+            throw new RuntimeException("Name cannot be empty");
+        }
+        user.setFullName(fullName.trim());
+        return userRepository.save(user);
+    }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new RuntimeException("New password must be at least 6 characters");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     public List<String> getDeliveryPartners() {
         return userRepository.findByRole(User.Role.ROLE_DELIVERY_PARTNER)
                 .stream()

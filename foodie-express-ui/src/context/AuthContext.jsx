@@ -17,6 +17,15 @@ export const AuthProvider = ({ children }) => {
     window.dispatchEvent(new Event('foodie-auth-change'));
   };
 
+  const updateUserName = (name) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, name };
+      localStorage.setItem('foodie_user', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const logoutUser = () => {
     setUser(null);
     localStorage.removeItem('foodie_user');
@@ -25,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginUser, logoutUser }}>
+    <AuthContext.Provider value={{ user, loginUser, logoutUser, updateUserName }}>
       {children}
     </AuthContext.Provider>
   );

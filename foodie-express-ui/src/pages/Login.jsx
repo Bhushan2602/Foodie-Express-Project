@@ -12,6 +12,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -90,7 +92,7 @@ const Login = () => {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">Password</label>
-                <a href="#" className="text-xs font-bold text-orange-500 hover:text-orange-600 transition">Forgot?</a>
+                <button type="button" onClick={() => { setForgotEmail(credentials.email); setShowForgot(true); }} className="text-xs font-bold text-orange-500 hover:text-orange-600 transition">Forgot?</button>
               </div>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -119,12 +121,51 @@ const Login = () => {
 
           <div className="mt-8 text-center">
             <p className="text-gray-500 text-sm font-medium">
-              Don't have an account yet?{' '}
+              Don&apos;t have an account yet?{' '}
               <Link to="/register" className="text-orange-600 font-black hover:underline transition">Create one here</Link>
             </p>
           </div>
         </div>
       </motion.div>
+
+      {showForgot && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForgot(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-black text-gray-800 mb-1">Reset password</h3>
+            <p className="text-xs text-gray-500 mb-4">Demo build — no emails are sent. To change a known password, use Profile → Change Password after login.</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!forgotEmail.includes('@')) {
+                  toast.error('Enter a valid email');
+                  return;
+                }
+                setShowForgot(false);
+                toast.success(`If ${forgotEmail} exists, a reset link was sent (demo).`);
+              }}
+              className="space-y-3"
+            >
+              <input
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                required
+              />
+              <div className="flex gap-2">
+                <button className="flex-1 bg-orange-500 text-white py-3 rounded-xl text-xs font-black hover:bg-orange-600">Send reset link</button>
+                <button type="button" onClick={() => setShowForgot(false)} className="px-5 py-3 bg-gray-100 rounded-xl text-xs font-black text-gray-600 hover:bg-gray-200">Cancel</button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

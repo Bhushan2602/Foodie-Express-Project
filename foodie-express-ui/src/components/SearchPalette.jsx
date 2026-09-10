@@ -88,7 +88,7 @@ const SearchPalette = ({ open, onClose, selectedCity }) => {
                   onClick={() => { onClose(); navigate(`/restaurant/${r.id}`); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-orange-50 rounded-xl text-left transition"
                 >
-                  <img src={r.imageUrl} alt="" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
+                  <img src={r.imageUrl} alt="" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=200&auto=format&fit=crop"; }} className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-bold text-gray-800 truncate">{r.name}</span>
                     <span className="block text-xs text-gray-500">{r.cuisineType} • {r.city}</span>

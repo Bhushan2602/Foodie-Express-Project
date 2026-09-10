@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { imgFallback } from '../utils/restaurantMeta';
 
 const FeaturedRestaurants = ({ restaurants }) => {
   if (!restaurants || restaurants.length === 0) return null;
@@ -41,6 +42,7 @@ const FeaturedRestaurants = ({ restaurants }) => {
                       src={restaurant.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                       alt={restaurant.name}
                       loading="lazy"
+                      onError={imgFallback}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 aspect-[4/3]"
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">

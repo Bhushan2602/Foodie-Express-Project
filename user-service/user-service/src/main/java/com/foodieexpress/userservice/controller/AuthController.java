@@ -4,6 +4,8 @@ import com.foodieexpress.userservice.dto.LoginRequest;
 import com.foodieexpress.userservice.dto.RegisterRequest;
 import com.foodieexpress.userservice.dto.UserResponseDTO;
 import com.foodieexpress.userservice.dto.JwtAuthResponse;
+import com.foodieexpress.userservice.dto.UpdateProfileRequest;
+import com.foodieexpress.userservice.dto.ChangePasswordRequest;
 import com.foodieexpress.userservice.entity.User;
 import com.foodieexpress.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -76,5 +78,25 @@ public class AuthController {
     public ResponseEntity<List<String>> getDeliveryPartners() {
         List<String> partners = userService.getDeliveryPartners();
         return ResponseEntity.ok(partners);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequest req) {
+        try {
+            User updated = userService.updateProfile(req.getEmail(), req.getFullName());
+            return ResponseEntity.ok(new UserResponseDTO(updated.getId(), updated.getFullName(), updated.getEmail(), updated.getRole().name()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest req) {
+        try {
+            userService.changePassword(req.getEmail(), req.getOldPassword(), req.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 }

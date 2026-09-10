@@ -35,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
                 )),
             new Restaurant(null, "Bawarchi", "Near RTC Bus Stand, Koti",
                 "Biryani", "Hyderabad",
-                "https://images.unsplash.com/photo-1505253758473-96b7015fcd40?q=80&w=500",
+                "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=500",
                 List.of(
                     new MenuItem(null, "Special Chicken Biryani", "Bawarchi's signature biryani", 350, false),
                     new MenuItem(null, "Prawn Biryani", "Fresh prawns cooked to perfection", 450, false),
@@ -44,7 +44,7 @@ public class DataInitializer implements CommandLineRunner {
                 )),
             new Restaurant(null, "Pista House", "Himayat Nagar, Near Liberty",
                 "Biryani", "Hyderabad",
-                "https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=500",
+                "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=500",
                 List.of(
                     new MenuItem(null, "Chicken Dum Biryani", "Authentic dum style biryani", 300, false),
                     new MenuItem(null, "Zafrani Pulao", "Saffron rice with dry fruits", 280, true),
@@ -62,7 +62,7 @@ public class DataInitializer implements CommandLineRunner {
                 )),
             new Restaurant(null, "Chutneys", "Ameerpet, Near Metro Station",
                 "South Indian", "Hyderabad",
-                "https://images.unsplash.com/photo-1630383249896-424e482df921?q=80&w=500",
+                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500",
                 List.of(
                     new MenuItem(null, "Masala Dosa", "Crispy dosa with spiced potato filling", 150, true),
                     new MenuItem(null, "Idli Sambar", "Steamed rice cakes with lentil soup", 100, true),
@@ -548,7 +548,7 @@ public class DataInitializer implements CommandLineRunner {
         String params = "?q=80&w=400&auto=format&fit=crop";
         if (n.contains("biryani") || n.contains("pulao")) return base + "photo-1563379091339-03b21ab4a4f8" + params;
         if (n.contains("pizza")) return base + "photo-1565299624946-b28f40a0ae38" + params;
-        if (n.contains("dosa") || n.contains("idli") || n.contains("uttapam")) return base + "photo-1589301760014-d929f3979dbc" + params;
+        if (n.contains("dosa") || n.contains("idli") || n.contains("uttapam")) return base + "photo-1565557623262-b51c2513a641" + params;
         if (n.contains("burger") || n.contains("frankie") || n.contains("vada pav") || n.contains("sandwich")) return base + "photo-1568901346375-23c9450c58cd" + params;
         if (n.contains("noodle") || n.contains("hakka") || n.contains("manchurian") || n.contains("chinese") || n.contains("momos")) return base + "photo-1585032226651-759b368d7246" + params;
         if (n.contains("butter chicken") || n.contains("korma") || n.contains("curry") || n.contains("dal") || n.contains("paneer") || n.contains("thali")) return base + "photo-1567188040759-fb8a883dc6d8" + params;

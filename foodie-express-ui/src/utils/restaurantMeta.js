@@ -1,5 +1,11 @@
-const REVIEW_POOL = [
-  { name: "Amit S.", avatar: "👨", text: "Absolutely delicious! Packed well and arrived hot." },
+export const FALLBACK_IMG = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop";
+
+export const imgFallback = (e) => {
+  e.currentTarget.onerror = null;
+  e.currentTarget.src = FALLBACK_IMG;
+};
+
+const REVIEW_POOL = [  { name: "Amit S.", avatar: "👨", text: "Absolutely delicious! Packed well and arrived hot." },
   { name: "Priya M.", avatar: "👩", text: "Great quality and generous portions. Delivery took a little long once." },
   { name: "Rohit K.", avatar: "🧑", text: "Consistent taste every time. One of the best in this area." },
   { name: "Sneha P.", avatar: "👩‍🦱", text: "Amazing flavour and fresh ingredients. Will order again!" },

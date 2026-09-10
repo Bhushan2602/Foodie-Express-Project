@@ -4,6 +4,7 @@ import { restaurantService } from '../services/api';
 import { Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { imgFallback } from '../utils/restaurantMeta';
 import { Link } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import CuisineCategories from '../components/CuisineCategories';
@@ -69,14 +70,31 @@ const Home = ({ selectedCity, setSelectedCity }) => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-20 md:pb-0">
+    <div className="bg-gray-50 dark:bg-stone-950 min-h-screen pb-20 md:pb-0">
       <HeroSection />
 
-      <CuisineCategories onSelect={handleCuisineSelect} />
-
-      <CityExplorer onSelectCity={(city) => setSelectedCity?.(city)} />
-
-      <FeaturedRestaurants restaurants={restaurants} />
+      {selectedCity === "All" || selectedCity === "" ? (
+        <>
+          <CuisineCategories onSelect={handleCuisineSelect} />
+          <CityExplorer onSelectCity={(city) => setSelectedCity?.(city)} />
+          <FeaturedRestaurants restaurants={restaurants} />
+        </>
+      ) : (
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="card p-5 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-orange-600">Showing city</p>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">{selectedCity}</h2>
+            </div>
+            <button
+              onClick={() => setSelectedCity?.("All")}
+              className="text-xs font-black text-orange-600 hover:underline"
+            >
+              View all cities
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Restaurants Section */}
       <section id="restaurants-section" className="py-12 bg-white dark:bg-stone-950">
@@ -126,6 +144,7 @@ const Home = ({ selectedCity, setSelectedCity }) => {
                       src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                       alt={res.name}
                       loading="lazy"
+                      onError={imgFallback}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 aspect-[4/3]"
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">

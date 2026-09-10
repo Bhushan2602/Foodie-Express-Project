@@ -4,6 +4,7 @@ import { restaurantService } from '../services/api';
 import { MapPin, Plus, Minus, Star, Clock, SlidersHorizontal, Leaf, Search, Grid3X3, List, X, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { imgFallback } from '../utils/restaurantMeta';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import RestaurantSkeleton from '../components/RestaurantSkeleton';
@@ -372,10 +373,12 @@ const Explore = ({ headerCity }) => {
               >
                 {viewMode === 'grid' ? (
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-                    <Link to={`/restaurant/${res.id}`} className="h-48 overflow-hidden relative block">
+                    <Link to={`/restaurant/${res.id}`} className="h-48 overflow-hidden relative block bg-gray-100">
                       <img
                         src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                         alt={res.name}
+                        loading="lazy"
+                        onError={imgFallback}
                         className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">
@@ -441,10 +444,12 @@ const Explore = ({ headerCity }) => {
                 ) : (
                   /* List View */
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition flex">
-                    <Link to={`/restaurant/${res.id}`} className="w-48 md:w-64 h-48 flex-shrink-0 overflow-hidden relative block">
+                    <Link to={`/restaurant/${res.id}`} className="w-48 md:w-64 h-48 flex-shrink-0 overflow-hidden relative block bg-gray-100">
                       <img
                         src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                         alt={res.name}
+                        loading="lazy"
+                        onError={imgFallback}
                         className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                       />
                     </Link>

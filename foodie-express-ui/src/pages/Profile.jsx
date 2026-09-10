@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '../services/api';
+import { getFavorites } from '../utils/restaurantMeta';
 import { User, Mail, Shield, Package, Heart, MapPin, Settings, LogOut, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
-  const { user, logoutUser } = useAuth();
+  const { user, logoutUser, updateUserName } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [addresses, setAddresses] = useState(() => {
@@ -18,6 +20,16 @@ const Profile = () => {
   });
   const [newAddress, setNewAddress] = useState({ label: '', address: '', city: '' });
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const [openPanel, setOpenPanel] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [pw, setPw] = useState({ oldPassword: '', newPassword: '' });
+  const [notif, setNotif] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('foodie_notif') || '{"order":true,"offers":true}');
+    } catch {
+      return { order: true, offers: true };
+    }
+  });
 
   const displayName = user?.name || user?.email?.split('@')[0] || 'Foodie';
   const displayEmail = user?.email || 'user@example.com';
@@ -54,6 +66,43 @@ const Profile = () => {
     logoutUser();
     toast.success('Logged out!');
     navigate('/');
+  };
+
+  const favs = getFavorites();
+
+  const handleEditProfile = async (e) => {
+    e.preventDefault();
+    if (!editName.trim()) {
+      toast.error('Enter a name');
+      return;
+    }
+    try {
+      await authService.updateProfile({ email: user.email, fullName: editName.trim() });
+      updateUserName(editName.trim());
+      setOpenPanel(null);
+      toast.success('Profile updated!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    try {
+      await authService.changePassword({ email: user.email, oldPassword: pw.oldPassword, newPassword: pw.newPassword });
+      setPw({ oldPassword: '', newPassword: '' });
+      setOpenPanel(null);
+      toast.success('Password changed! Login again next time.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Password change failed');
+    }
+  };
+
+  const toggleNotif = (key) => {
+    const next = { ...notif, [key]: !notif[key] };
+    setNotif(next);
+    localStorage.setItem('foodie_notif', JSON.stringify(next));
+    toast.success('Preferences saved');
   };
 
   const tabs = [
@@ -150,7 +199,7 @@ const Profile = () => {
                     <Package size={24} className="text-orange-500 mx-auto mb-2" />
                     <span className="text-xs font-black text-gray-700">My Orders</span>
                   </Link>
-                  <button className="bg-red-50 rounded-2xl p-4 text-center hover:bg-red-100 transition">
+                  <button onClick={() => setActiveTab('favorites')} className="bg-red-50 rounded-2xl p-4 text-center hover:bg-red-100 transition">
                     <Heart size={24} className="text-red-500 mx-auto mb-2" />
                     <span className="text-xs font-black text-gray-700">Favorites</span>
                   </button>
@@ -260,13 +309,27 @@ const Profile = () => {
 
             {/* Favorites Tab */}
             {activeTab === 'favorites' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-                <Heart size={64} className="text-gray-200 mx-auto mb-4" />
-                <h3 className="text-xl font-black text-gray-800 mb-2">No favorites yet</h3>
-                <p className="text-gray-500 text-sm mb-6">Start browsing and heart your favorite restaurants!</p>
-                <Link to="/explore" className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black hover:bg-orange-600 transition no-underline">
-                  Explore Restaurants
-                </Link>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {favs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Heart size={64} className="text-gray-200 mx-auto mb-4" />
+                    <h3 className="text-xl font-black text-gray-800 mb-2">No favorites yet</h3>
+                    <p className="text-gray-500 text-sm mb-6">Tap the heart on any restaurant to save it here!</p>
+                    <Link to="/explore" className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black hover:bg-orange-600 transition no-underline">
+                      Explore Restaurants
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <h3 className="font-black text-gray-800">{favs.length} saved restaurant{favs.length > 1 ? 's' : ''}</h3>
+                    {favs.map((id) => (
+                      <Link key={id} to={`/restaurant/${id}`} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl hover:shadow-md transition no-underline">
+                        <span className="font-bold text-gray-800 flex items-center gap-2"><Heart size={16} className="text-red-500" fill="currentColor" /> {id}</span>
+                        <ChevronRight size={16} className="text-gray-400" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -275,23 +338,81 @@ const Profile = () => {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                 <h3 className="font-black text-gray-800 mb-4">Account Settings</h3>
                 {[
-                  { label: 'Edit Profile', icon: Edit3, color: 'text-blue-500 bg-blue-50' },
-                  { label: 'Change Password', icon: Shield, color: 'text-green-500 bg-green-50' },
-                  { label: 'Notification Settings', icon: Settings, color: 'text-purple-500 bg-purple-50' },
-                  { label: 'Payment Methods', icon: Mail, color: 'text-orange-500 bg-orange-50' },
+                  { id: 'edit', label: 'Edit Profile', icon: Edit3, color: 'text-blue-500 bg-blue-50' },
+                  { id: 'password', label: 'Change Password', icon: Shield, color: 'text-green-500 bg-green-50' },
+                  { id: 'notif', label: 'Notification Settings', icon: Settings, color: 'text-purple-500 bg-purple-50' },
+                  { id: 'pay', label: 'Payment Methods', icon: Mail, color: 'text-orange-500 bg-orange-50' },
                 ].map((item) => (
-                  <button
-                    key={item.label}
-                    className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl hover:shadow-md transition text-left"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-xl ${item.color}`}>
-                        <item.icon size={20} />
+                  <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+                    <button
+                      onClick={() => {
+                        setOpenPanel(openPanel === item.id ? null : item.id);
+                        if (item.id === 'edit') setEditName(user?.name || '');
+                      }}
+                      className="w-full flex items-center justify-between p-4 hover:shadow-md transition text-left"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${item.color}`}>
+                          <item.icon size={20} />
+                        </div>
+                        <span className="font-bold text-gray-800">{item.label}</span>
                       </div>
-                      <span className="font-bold text-gray-800">{item.label}</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </button>
+                      <ChevronRight size={16} className={`text-gray-400 transition-transform ${openPanel === item.id ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {openPanel === 'edit' && item.id === 'edit' && (
+                      <form onSubmit={handleEditProfile} className="p-4 border-t bg-gray-50 flex gap-2">
+                        <input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Full name"
+                          className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                        />
+                        <button className="bg-orange-500 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-orange-600">Save</button>
+                      </form>
+                    )}
+
+                    {openPanel === 'password' && item.id === 'password' && (
+                      <form onSubmit={handleChangePassword} className="p-4 border-t bg-gray-50 space-y-2">
+                        <input
+                          type="password"
+                          value={pw.oldPassword}
+                          onChange={(e) => setPw({ ...pw, oldPassword: e.target.value })}
+                          placeholder="Current password"
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                          required
+                        />
+                        <input
+                          type="password"
+                          value={pw.newPassword}
+                          onChange={(e) => setPw({ ...pw, newPassword: e.target.value })}
+                          placeholder="New password (min 6 chars)"
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500"
+                          required
+                        />
+                        <button className="bg-green-600 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-green-700">Update password</button>
+                      </form>
+                    )}
+
+                    {openPanel === 'notif' && item.id === 'notif' && (
+                      <div className="p-4 border-t bg-gray-50 space-y-2">
+                        {[['order', 'Order status updates'], ['offers', 'Offers & promos']].map(([key, label]) => (
+                          <button key={key} onClick={() => toggleNotif(key)} className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold">
+                            {label}
+                            <span className={`w-10 h-6 rounded-full transition relative ${notif[key] ? 'bg-green-500' : 'bg-gray-300'}`}>
+                              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${notif[key] ? 'left-[18px]' : 'left-0.5'}`} />
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {openPanel === 'pay' && item.id === 'pay' && (
+                      <div className="p-4 border-t bg-gray-50 text-sm text-gray-600 font-medium">
+                        Demo build — payments run via Razorpay (UPI / Card / Netbanking / COD) at checkout. No cards are stored.
+                      </div>
+                    )}
+                  </div>
                 ))}
 
                 <div className="mt-8 pt-6 border-t">
