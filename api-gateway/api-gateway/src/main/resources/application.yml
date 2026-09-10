@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "${CORS_ORIGINS:http://localhost:5173}"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        - id: user-service
+          uri: "${USER_SERVICE_URL:http://localhost:8081}"
+          predicates:
+            - Path=/api/auth/**
+
+        - id: restaurant-service
+          uri: "${RESTAURANT_SERVICE_URL:http://localhost:8082}"
+          predicates:
+            - Path=/api/restaurants/**
+
+        - id: order-service
+          uri: "${ORDER_SERVICE_URL:http://localhost:8083}"
+          predicates:
+            - Path=/api/orders/**,/api/payments/**

@@ -1,0 +1,35 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/foodie_orders
+    username: foodie_admin
+    password: FoodiePass123!
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder_key_id}
+  key-secret: ${RAZORPAY_KEY_SECRET:rzp_test_placeholder_key_secret}
+  demo-mode: ${RAZORPAY_DEMO_MODE:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
