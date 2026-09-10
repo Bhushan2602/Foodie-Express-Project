@@ -36,11 +36,12 @@ const FeaturedRestaurants = ({ restaurants }) => {
             >
               <Link to={`/restaurant/${restaurant.id}`} className="block no-underline group">
                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300">
-                  <div className="relative h-40 overflow-hidden">
+                  <div className="relative h-40 overflow-hidden bg-gray-100">
                     <img
                       src={restaurant.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                       alt={restaurant.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 aspect-[4/3]"
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">
                       <div className="flex items-center gap-1">
