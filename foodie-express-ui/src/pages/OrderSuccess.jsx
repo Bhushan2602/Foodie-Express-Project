@@ -1,17 +1,40 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, ShoppingBag, ListOrdered } from 'lucide-react';
+import { CheckCircle, ShoppingBag, ListOrdered, PartyPopper } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const CONFETTI = Array.from({ length: 24 }, (_, i) => ({
+  left: `${(i * 41) % 100}%`,
+  delay: (i % 8) * 0.12,
+  color: ['#f97316', '#22c55e', '#3b82f6', '#eab308', '#ec4899'][i % 5],
+  size: 6 + (i % 3) * 3,
+}));
 
 const OrderSuccess = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <motion.div 
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-950 flex items-center justify-center p-6 overflow-hidden">
+      {/* Confetti burst (pure CSS/Framer — no extra deps) */}
+      <div className="fixed inset-0 pointer-events-none">
+        {CONFETTI.map((c, i) => (
+          <motion.span
+            key={i}
+            initial={{ y: -20, opacity: 0, rotate: 0 }}
+            animate={{ y: '110vh', opacity: [0, 1, 1, 0], rotate: 360 }}
+            transition={{ duration: 2.8, delay: c.delay, ease: 'easeIn' }}
+            className="absolute top-0 rounded-sm"
+            style={{ left: c.left, width: c.size, height: c.size * 0.5, background: c.color }}
+          />
+        ))}
+      </div>
+      <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-md w-full bg-white rounded-[2rem] shadow-xl p-10 text-center border border-gray-100"
+        className="max-w-md w-full bg-white dark:bg-stone-900 rounded-[2rem] shadow-xl p-10 text-center border border-gray-100 dark:border-white/10 relative"
       >
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-3 py-1.5 rounded-full mb-4">
+          <PartyPopper size={13} /> Order placed
+        </p>
         <motion.div 
           initial={{ scale: 0, rotate: -45 }}
           animate={{ scale: 1, rotate: 0 }}

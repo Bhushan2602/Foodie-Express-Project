@@ -11,7 +11,6 @@ import CityExplorer from '../components/CityExplorer';
 import FeaturedRestaurants from '../components/FeaturedRestaurants';
 import Testimonials from '../components/Testimonials';
 import AppBanner from '../components/AppBanner';
-import Footer from '../components/Footer';
 import RestaurantSkeleton from '../components/RestaurantSkeleton';
 
 const Home = ({ selectedCity, setSelectedCity }) => {
@@ -80,8 +79,8 @@ const Home = ({ selectedCity, setSelectedCity }) => {
       <FeaturedRestaurants restaurants={restaurants} />
 
       {/* Restaurants Section */}
-      <section id="restaurants-section" className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="restaurants-section" className="py-12 bg-white dark:bg-stone-950">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl md:text-3xl font-black text-gray-900">
@@ -109,11 +108,11 @@ const Home = ({ selectedCity, setSelectedCity }) => {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array(6).fill("").map((_, i) => <RestaurantSkeleton key={i} />)}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array(8).fill("").map((_, i) => <RestaurantSkeleton key={i} />)}
             </div>
           ) : filteredRestaurants.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredRestaurants.map((res, idx) => (
                 <motion.div
                   key={res.id}
@@ -206,7 +205,6 @@ const Home = ({ selectedCity, setSelectedCity }) => {
 
       <Testimonials />
       <AppBanner />
-      <Footer />
     </div>
   );
 };

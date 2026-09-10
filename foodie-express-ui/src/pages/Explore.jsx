@@ -22,8 +22,8 @@ const sortOptions = [
   { id: 'costHigh', label: 'Cost: High to Low' },
 ];
 
-const Explore = () => {
-  const [searchParams] = useSearchParams();
+const Explore = ({ headerCity }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [restaurants, setRestaurants] = useState([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +35,7 @@ const Explore = () => {
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
   const { cart, addToCart, removeOneFromCart } = useCart();
   const { user } = useAuth();
   const canOrder = !user || user.role === 'ROLE_USER';
@@ -43,8 +44,21 @@ const Explore = () => {
     const q = searchParams.get('q');
     const city = searchParams.get('city');
     if (q) setSearchQuery(q);
+    // Header city is the source of truth unless URL has explicit ?city=
     if (city) setSelectedCity(city);
-  }, [searchParams]);
+    else if (headerCity) setSelectedCity(headerCity);
+  }, [searchParams, headerCity]);
+
+  // Push header city into URL so refresh/share keeps the filter
+  useEffect(() => {
+    if (headerCity && headerCity !== 'All' && searchParams.get('city') !== headerCity) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('city', headerCity);
+        return next;
+      }, { replace: true });
+    }
+  }, [headerCity]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -121,6 +135,7 @@ const Explore = () => {
     }
 
     setFilteredRestaurants(result);
+    setVisibleCount(12);
   }, [searchQuery, selectedCuisine, selectedCity, sortBy, isVegOnly, priceRange, restaurants]);
 
   return (
@@ -342,12 +357,13 @@ const Explore = () => {
             {Array(6).fill('').map((_, i) => <RestaurantSkeleton key={i} />)}
           </div>
         ) : filteredRestaurants.length > 0 ? (
+          <>
           <div className={`grid gap-6 ${
             viewMode === 'grid'
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
               : 'grid-cols-1'
           }`}>
-            {filteredRestaurants.map((res, idx) => (
+            {filteredRestaurants.slice(0, visibleCount).map((res, idx) => (
               <motion.div
                 key={res.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -487,6 +503,17 @@ const Explore = () => {
               </motion.div>
             ))}
           </div>
+          {visibleCount < filteredRestaurants.length && (
+            <div className="text-center mt-8">
+              <button
+                onClick={() => setVisibleCount((c) => c + 12)}
+                className="bg-white border border-gray-200 px-8 py-3 rounded-2xl text-sm font-black text-gray-700 hover:border-orange-300 hover:text-orange-600 transition"
+              >
+                Show more ({filteredRestaurants.length - visibleCount} left)
+              </button>
+            </div>
+          )}
+          </>
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
             <p className="text-4xl mb-4">🔍</p>

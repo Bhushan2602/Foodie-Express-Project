@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, User, Utensils, Package, LogOut, Heart, MapPin, ChevronDown, Check, LayoutDashboard, UserCircle, Compass, Menu, X, Command } from 'lucide-react';
+import { ShoppingBag, User, Utensils, Package, LogOut, Heart, MapPin, ChevronDown, Check, LayoutDashboard, UserCircle, Compass, Menu, X, Command, Sun, Moon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,12 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [dark, setDark] = useState(() => localStorage.getItem('foodie_theme') === 'dark');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    localStorage.setItem('foodie_theme', dark ? 'dark' : 'light');
+  }, [dark]);
 
   const dropdownRef = useRef(null);
   const cityRef = useRef(null);
@@ -89,12 +95,12 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
   const canOrder = !user || user.role === 'ROLE_USER';
 
   return (
-    <nav className="bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <nav className="bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100 dark:border-white/10">
       <SearchPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} selectedCity={selectedCity} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-4">
-        
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3 md:gap-5">
+
         {/* Left: Logo & City */}
-        <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
+        <div className="flex items-center gap-3 md:gap-4 flex-shrink-0 min-w-0">
           <Link to="/" className="text-xl md:text-2xl font-extrabold text-orange-600 flex items-center gap-1 md:gap-2 no-underline">
             <div className="bg-orange-500 text-white p-1.5 rounded-xl">
               <Utensils size={18} />
@@ -149,7 +155,14 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 ml-auto">
+          <button
+            onClick={() => setDark((d) => !d)}
+            aria-label="Toggle theme"
+            className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition text-gray-600 dark:text-gray-300"
+          >
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <Link to="/explore" className="hidden md:flex items-center gap-1.5 text-gray-600 hover:text-orange-500 transition font-medium text-sm no-underline">
             <Compass size={18} />
             <span className="hidden xl:inline">Explore</span>

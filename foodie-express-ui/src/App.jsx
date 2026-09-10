@@ -62,7 +62,7 @@ const AnimatedRoutes = ({ selectedCity, setSelectedCity }) => {
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<CustomerRoute><Cart /></CustomerRoute>} />
             <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-            <Route path="/explore" element={<Explore />} />
+            <Route path="/explore" element={<Explore headerCity={selectedCity} />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
             <Route path="/order/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
