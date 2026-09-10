@@ -5,14 +5,9 @@ import { restaurantService } from '../services/api';
 import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, Leaf, Share2, Heart, Info, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { getRestaurantMeta, getSampleReviews, getFavorites, toggleFavorite } from '../utils/restaurantMeta';
+import toast from 'react-hot-toast';
 import React from 'react';
-
-const reviews = [
-  { name: "Amit S.", rating: 5, text: "Absolutely delicious! The biryani was perfectly cooked and arrived hot.", date: "2 days ago", avatar: "👨" },
-  { name: "Priya M.", rating: 4, text: "Great food quality. Delivery was a bit late but worth the wait.", date: "1 week ago", avatar: "👩" },
-  { name: "Rohit K.", rating: 5, text: "Best restaurant in the city! Every dish is a masterpiece.", date: "3 days ago", avatar: "🧑" },
-  { name: "Sneha P.", rating: 5, text: "Amazing taste and generous portions. Will order again!", date: "5 days ago", avatar: "👩‍🦱" },
-];
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -20,6 +15,7 @@ const RestaurantDetail = () => {
   const [restaurant, setRestaurant] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [isFav, setIsFav] = useState(false);
   const { cart, addToCart, removeOneFromCart } = useCart();
   const { user } = useAuth();
   const canOrder = !user || user.role === 'ROLE_USER';
@@ -29,12 +25,28 @@ const RestaurantDetail = () => {
       try {
         const response = await restaurantService.getRestaurantById(id);
         setRestaurant(response.data);
+        setIsFav(getFavorites().includes(response.data.id || id));
       } catch (error) {
         console.error("Error loading restaurant:", error);
       }
     };
     fetchDetails();
   }, [id]);
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Restaurant link copied!');
+    } catch {
+      toast.error('Could not copy link');
+    }
+  };
+
+  const handleFav = () => {
+    const next = toggleFavorite(restaurant.id || id);
+    setIsFav(next);
+    toast.success(next ? 'Added to favorites' : 'Removed from favorites');
+  };
 
   if (!restaurant) {
     return (
@@ -77,6 +89,9 @@ const RestaurantDetail = () => {
     const averageItemPrice = totalMenuPrice / restaurant.menu.length;
     costForTwo = Math.ceil((averageItemPrice * 2) / 50) * 50;
   }
+  const meta = getRestaurantMeta({ ...restaurant, costForTwo });
+  costForTwo = meta.costForTwo;
+  const reviews = getSampleReviews(restaurant, 4);
 
   const vegItems = restaurant.menu?.filter(m => m.isVegetarian) || [];
   const nonVegItems = restaurant.menu?.filter(m => !m.isVegetarian) || [];
@@ -109,10 +124,10 @@ const RestaurantDetail = () => {
         </button>
 
         <div className="absolute top-6 right-6 flex gap-2">
-          <button className="bg-white/20 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-white hover:text-black transition-all shadow-lg">
-            <Heart size={18} />
+          <button onClick={handleFav} aria-label="Save to favorites" className={`p-2.5 rounded-full transition-all shadow-lg backdrop-blur-md ${isFav ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white hover:text-black'}`}>
+            <Heart size={18} fill={isFav ? "currentColor" : "none"} />
           </button>
-          <button className="bg-white/20 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-white hover:text-black transition-all shadow-lg">
+          <button onClick={handleShare} aria-label="Share restaurant" className="bg-white/20 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-white hover:text-black transition-all shadow-lg">
             <Share2 size={18} />
           </button>
         </div>
@@ -142,12 +157,13 @@ const RestaurantDetail = () => {
         <div className="bg-white rounded-2xl p-5 md:p-8 shadow-xl border border-gray-100">
           <div className="flex flex-wrap items-center gap-6 md:gap-10">
             <div className="bg-green-600 text-white px-4 py-2.5 rounded-2xl font-black flex items-center gap-1.5 shadow-lg shadow-green-100">
-              <Star size={18} fill="currentColor" /> {restaurant.rating || "4.0"}
+              <Star size={18} fill="currentColor" /> {meta.rating}
+              <span className="text-[11px] font-bold opacity-80">({meta.reviewsCount})</span>
             </div>
             <div className="flex flex-col">
               <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest mb-1">Delivery</span>
               <div className="flex items-center gap-2 font-black text-gray-700">
-                <Clock size={16} className="text-orange-500" /> {restaurant.deliveryTime || "30-45"} MINS
+                <Clock size={16} className="text-orange-500" /> {meta.deliveryTime} MINS
               </div>
             </div>
             <div className="flex flex-col">
@@ -276,12 +292,13 @@ const RestaurantDetail = () => {
 
         {/* Reviews Section */}
         <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-2xl font-black text-gray-800">Reviews</h2>
             <span className="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-xs font-black">
-              {restaurant.rating || "4.0"} ★
+              {meta.rating} ★ ({meta.reviewsCount} ratings)
             </span>
           </div>
+          <p className="text-[11px] text-gray-400 mb-6">Sample customer reviews • Real ratings API coming soon</p>
 
           <div className="space-y-4">
             {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, idx) => (

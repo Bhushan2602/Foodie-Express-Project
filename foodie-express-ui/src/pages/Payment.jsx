@@ -47,7 +47,16 @@ const Payment = () => {
 
   const itemTotal = cart.reduce((total, item) => total + item.price, 0);
   const totalDeliveryFee = groupedCart.length * 40;
-  const grandTotal = itemTotal + totalDeliveryFee;
+  const taxAmount = Math.round(itemTotal * 0.05);
+  const promo = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('foodie_promo') || 'null');
+    } catch {
+      return null;
+    }
+  })();
+  const promoDiscount = promo?.discount || 0;
+  const grandTotal = Math.max(itemTotal + totalDeliveryFee + taxAmount - promoDiscount, 0);
 
   if (cart.length === 0) {
     navigate('/cart');
@@ -65,6 +74,11 @@ const Payment = () => {
       restaurantName: restaurantNames,
       items: formattedItems,
       totalAmount: grandTotal,
+      itemTotal,
+      deliveryFee: totalDeliveryFee,
+      taxAmount,
+      promoCode: promo?.code || null,
+      discountAmount: promoDiscount,
       razorpayOrderId,
       razorpayPaymentId,
       razorpaySignature,
@@ -156,6 +170,11 @@ const Payment = () => {
         restaurantName: restaurantNames,
         items: formattedItems,
         totalAmount: grandTotal,
+        itemTotal,
+        deliveryFee: totalDeliveryFee,
+        taxAmount,
+        promoCode: promo?.code || null,
+        discountAmount: promoDiscount,
         paymentMethod: 'cod',
       });
 

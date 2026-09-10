@@ -50,4 +50,15 @@ public class FoodOrder {
     private String restaurantId;
 
     private String deliveryAddress;
+
+    // Pricing breakdown (server re-validates promo so clients can't forge discounts)
+    private String promoCode;
+
+    private Double discountAmount = 0.0;
+
+    private Double itemTotal;
+
+    private Double deliveryFee;
+
+    private Double taxAmount;
 }

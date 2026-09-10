@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { orderService } from '../services/api';
 import { Trash2, ShoppingBag, ArrowRight, Plus, Minus, MapPin, Info, Tag, Clock, X, Coins } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +22,8 @@ const Cart = () => {
 
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoValidating, setPromoValidating] = useState(false);
   const [selectedTip, setSelectedTip] = useState(0);
   const [deliverySlot, setDeliverySlot] = useState('now');
 
@@ -46,37 +49,55 @@ const Cart = () => {
   const taxesAndCharges = Math.round(itemTotal * 0.05);
   const subtotal = itemTotal + totalDeliveryFee + taxesAndCharges;
 
-  let discount = 0;
-  if (appliedPromo) {
+  let discount = promoDiscount;
+  if (!appliedPromo) discount = 0;
+  else if (promoDiscount === 0) {
+    // Fallback when backend unreachable: same rules as server (see PromoService)
     const promo = promoCodes[appliedPromo];
-    if (promo.type === 'flat') {
-      discount = promo.discount;
-    } else if (promo.type === 'percent') {
-      discount = Math.min(Math.round(itemTotal * promo.discount / 100), promo.maxDiscount || Infinity);
-    } else if (promo.type === 'delivery') {
-      discount = totalDeliveryFee;
+    if (promo) {
+      if (promo.type === 'flat') discount = promo.discount;
+      else if (promo.type === 'percent') discount = Math.min(Math.round(itemTotal * promo.discount / 100), promo.maxDiscount || Infinity);
+      else if (promo.type === 'delivery') discount = totalDeliveryFee;
     }
   }
 
   const grandTotal = Math.max(subtotal - discount + selectedTip, 0);
 
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
     const code = promoCode.toUpperCase().trim();
-    const promo = promoCodes[code];
-    if (!promo) {
-      toast.error('Invalid promo code');
-      return;
+    if (!code) return;
+    setPromoValidating(true);
+    try {
+      const { data } = await orderService.validatePromo({ code, itemTotal, deliveryFee: totalDeliveryFee });
+      if (!data.valid) {
+        toast.error(data.message || 'Invalid promo code');
+        return;
+      }
+      setAppliedPromo(code);
+      setPromoDiscount(data.discount);
+      toast.success(`Promo applied! ${data.message} (-₹${Math.round(data.discount)})`);
+    } catch {
+      // Offline fallback to local rules
+      const promo = promoCodes[code];
+      if (!promo) {
+        toast.error('Invalid promo code');
+        return;
+      }
+      if (itemTotal < promo.minOrder) {
+        toast.error(`Minimum order ₹${promo.minOrder} required`);
+        return;
+      }
+      setAppliedPromo(code);
+      setPromoDiscount(0);
+      toast.success(`Promo applied! ${promo.description} (offline check — server will re-verify)`);
+    } finally {
+      setPromoValidating(false);
     }
-    if (itemTotal < promo.minOrder) {
-      toast.error(`Minimum order ₹${promo.minOrder} required`);
-      return;
-    }
-    setAppliedPromo(code);
-    toast.success(`Promo applied! ${promo.description}`);
   };
 
   const handleRemovePromo = () => {
     setAppliedPromo(null);
+    setPromoDiscount(0);
     setPromoCode('');
     toast('Promo removed', { icon: '🏷️' });
   };
@@ -88,6 +109,10 @@ const Cart = () => {
       return;
     }
     if (cart.length === 0) return;
+    // Carry pricing breakdown to payment (server re-validates promo)
+    sessionStorage.setItem('foodie_promo', JSON.stringify({
+      code: appliedPromo, discount, itemTotal, deliveryFee: totalDeliveryFee, tax: taxesAndCharges,
+    }));
     navigate('/payment');
   };
 
@@ -282,10 +307,10 @@ const Cart = () => {
                   />
                   <button
                     onClick={handleApplyPromo}
-                    disabled={!promoCode}
+                    disabled={!promoCode || promoValidating}
                     className="bg-orange-500 text-white px-4 py-2.5 rounded-xl text-xs font-black hover:bg-orange-600 transition disabled:bg-gray-300"
                   >
-                    Apply
+                    {promoValidating ? 'Checking...' : 'Apply'}
                   </button>
                 </div>
               )}

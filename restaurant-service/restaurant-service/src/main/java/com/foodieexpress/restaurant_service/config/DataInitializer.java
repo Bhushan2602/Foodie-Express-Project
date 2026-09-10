@@ -508,6 +508,26 @@ public class DataInitializer implements CommandLineRunner {
                 ))
         );
 
+        // Backfill enterprise display meta deterministically so UI never shows fake constants.
+        for (int i = 0; i < restaurants.size(); i++) {
+            Restaurant r = restaurants.get(i);
+            int hash = Math.abs((r.getName() + r.getCity()).hashCode());
+            if (r.getRating() == null) {
+                r.setRating(3.8 + (hash % 11) / 10.0); // 3.8 – 4.8
+            }
+            if (r.getReviewsCount() == null) {
+                r.setReviewsCount(120 + (hash % 1800));
+            }
+            if (r.getDeliveryTime() == null) {
+                int base = 25 + (hash % 20); // 25–44 min start
+                r.setDeliveryTime(base + "-" + (base + 10));
+            }
+            if (r.getCostForTwo() == null && r.getMenu() != null && !r.getMenu().isEmpty()) {
+                double avg = r.getMenu().stream().mapToDouble(m -> m.getPrice()).average().orElse(200);
+                r.setCostForTwo(((int) Math.ceil(avg * 2 / 50)) * 50);
+            }
+        }
+
         restaurantRepository.saveAll(restaurants);
     }
 }

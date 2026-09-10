@@ -67,6 +67,8 @@ export const paymentService = {
 
 export const orderService = {
     placeOrder: (data) => API.post('/orders', data),
+    validatePromo: (data) => API.post('/orders/promos/validate', data),
+    listPromos: () => API.get('/orders/promos'),
     getUserOrders: (email) => API.get(`/orders/${email}`),
     getAllOrders: () => API.get('/orders/all'),
     updateOrderStatus: (id, status) => API.put(`/orders/${id}/status?status=${status}`),

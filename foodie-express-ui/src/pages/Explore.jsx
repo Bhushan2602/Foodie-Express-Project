@@ -454,6 +454,33 @@ const Explore = () => {
                       <div className="flex gap-4 mt-3 text-xs text-gray-500">
                         <span className="flex items-center gap-1"><Clock size={12} /> {res.deliveryTime || "30-45"} min</span>
                       </div>
+                      {canOrder && res.menu?.slice(0, 2).map((item, i) => {
+                        const itemCount = cart.filter(c => c.name === item.name && c.restaurantName === res.name).length;
+                        const itemInCart = cart.find(c => c.name === item.name && c.restaurantName === res.name);
+                        return (
+                          <div key={i} className="flex justify-between items-center py-2 border-t border-gray-50 mt-2">
+                            <div className="flex-1 min-w-0 mr-3">
+                              <span className="text-sm font-semibold text-gray-700 block truncate">{item.name}</span>
+                              <span className="text-xs font-bold text-orange-500">₹{item.price}</span>
+                            </div>
+                            {itemCount > 0 ? (
+                              <div className="flex items-center gap-2 bg-orange-50 rounded-xl p-0.5 border border-orange-100 flex-shrink-0">
+                                <button onClick={() => removeOneFromCart(itemInCart.id)} className="bg-white text-orange-600 w-6 h-6 rounded-lg flex items-center justify-center font-bold hover:bg-orange-600 hover:text-white transition shadow-sm">
+                                  <Minus size={12} />
+                                </button>
+                                <span className="font-black text-xs w-3 text-center">{itemCount}</span>
+                                <button onClick={() => addToCart(item, res.name, res.city)} className="bg-white text-orange-600 w-6 h-6 rounded-lg flex items-center justify-center font-bold hover:bg-orange-600 hover:text-white transition shadow-sm">
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button onClick={() => addToCart(item, res.name, res.city)} className="bg-orange-500 text-white px-3 py-1 rounded-xl hover:bg-orange-600 transition shadow-md shadow-orange-100 text-xs font-black flex-shrink-0">
+                                ADD +
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

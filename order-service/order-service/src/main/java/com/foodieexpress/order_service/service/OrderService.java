@@ -18,9 +18,40 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final PaymentService paymentService;
     private final RazorpayConfig razorpayConfig;
+    private final PromoService promoService;
 
     public FoodOrder placeOrder(FoodOrder order) {
         order.setOrderTime(LocalDateTime.now());
+
+        // Server-side pricing: recompute delivery fee + tax, re-validate promo.
+        double itemTotal = order.getItemTotal() != null ? order.getItemTotal() : 0;
+        if (itemTotal == 0 && order.getTotalAmount() != null) {
+            itemTotal = order.getTotalAmount();
+        }
+        int restaurantCount = 1;
+        if (order.getRestaurantName() != null && order.getRestaurantName().contains("&")) {
+            restaurantCount = order.getRestaurantName().split("&").length;
+        }
+        double deliveryFee = PromoService.DELIVERY_FEE_PER_RESTAURANT * Math.max(1, Math.min(restaurantCount, 5));
+        double tax = Math.round(itemTotal * PromoService.TAX_RATE);
+
+        double discount = 0;
+        if (order.getPromoCode() != null && !order.getPromoCode().isBlank()) {
+            PromoService.ValidationResult result = promoService.validate(order.getPromoCode(), itemTotal, deliveryFee);
+            if (!result.valid()) {
+                throw new RuntimeException("Promo rejected: " + result.message());
+            }
+            discount = result.discount();
+            // Reject forged discounts (>₹1 drift vs server computation)
+            if (order.getDiscountAmount() != null && Math.abs(order.getDiscountAmount() - discount) > 1.0) {
+                throw new RuntimeException("Promo discount mismatch. Please re-apply the promo code.");
+            }
+        }
+
+        order.setItemTotal(itemTotal);
+        order.setDeliveryFee(deliveryFee);
+        order.setTaxAmount((double) tax);
+        order.setDiscountAmount(discount);
 
         String paymentMethod = order.getPaymentMethod();
 

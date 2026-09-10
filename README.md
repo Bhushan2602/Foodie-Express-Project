@@ -227,6 +227,22 @@ Spring Cloud Gateway with route predicates:
 | `POST` | `/api/payments/create-order` | ✅ | Create Razorpay order |
 | `POST` | `/api/payments/verify` | ✅ | Verify payment signature |
 
+### Promos (server-validated)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/orders/promos` | ✅ | List public promo codes + rules |
+| `POST` | `/api/orders/promos/validate` | ✅ | Validate `{code, itemTotal, deliveryFee}` → `{valid, discount, message}` |
+
+> Pricing: delivery fee = ₹40 × restaurant count (max 5), tax = 5%. `placeOrder` re-validates the promo server-side and rejects forged discounts.
+
+---
+
+## 🔒 Security Notes (demo tradeoffs)
+
+- JWT is stored in `localStorage` for simplicity — vulnerable to XSS. Production should use `httpOnly` cookies + refresh rotation + CSP.
+- Admin can never self-register (`ROLE_ADMIN` allowlist blocked); promote via SQL.
+- All request DTOs use Bean Validation + global `@ControllerAdvice` error format.
+
 ---
 
 ## 🗄️ Database Schema
