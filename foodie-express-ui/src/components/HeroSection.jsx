@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ChevronRight, Zap, Shield, Clock } from 'lucide-react';
-import SearchBar from './SearchBar';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, Zap, Shield, Clock, Compass, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const heroSlides = [
   {
@@ -34,21 +34,32 @@ const heroSlides = [
   }
 ];
 
-const HeroSection = ({ onSearch }) => {
+const HeroSection = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
 
   React.useEffect(() => {
+    if (paused) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [paused]);
 
   const slide = heroSlides[currentSlide];
 
   return (
-    <section className="relative overflow-hidden">
-      <div className={`bg-gradient-to-br ${slide.gradient} transition-all duration-1000`}>
+    <section className="relative overflow-hidden" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <AnimatePresence mode="wait">
+      <motion.div
+        key={currentSlide}
+        initial={{ opacity: 0, scale: 1.02 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.6 }}
+        className={`bg-gradient-to-br ${slide.gradient}`}
+      >
         <div className="absolute inset-0">
           <img
             src={slide.image}
@@ -88,9 +99,24 @@ const HeroSection = ({ onSearch }) => {
               </p>
             </motion.div>
 
-            <div className="mb-8">
-              <SearchBar onSearch={onSearch} />
+            {/* Single global search lives in Navbar — hero uses CTAs to avoid duplicates */}
+            <div className="mb-8 flex flex-wrap gap-3">
+              <button
+                onClick={() => document.getElementById('restaurants-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-white text-gray-900 px-6 py-3.5 rounded-2xl font-black text-sm flex items-center gap-2 hover:bg-orange-50 transition shadow-xl"
+              >
+                <Compass size={16} /> Explore restaurants
+              </button>
+              <button
+                onClick={() => navigate('/explore')}
+                className="bg-white/15 text-white border border-white/30 px-6 py-3.5 rounded-2xl font-black text-sm flex items-center gap-2 hover:bg-white/25 transition backdrop-blur-sm"
+              >
+                <Sparkles size={16} /> Today's offers <ChevronRight size={16} />
+              </button>
             </div>
+            <p className="text-white/60 text-xs font-bold mb-8 uppercase tracking-widest">
+              Use the search bar above to find any dish or restaurant
+            </p>
 
             <div className="flex flex-wrap gap-4 mb-8">
               {heroSlides.map((_, i) => (
@@ -105,7 +131,8 @@ const HeroSection = ({ onSearch }) => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
+      </AnimatePresence>
 
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { restaurantService } from '../services/api';
 import { MapPin, Plus, Minus, Star, Clock, SlidersHorizontal, Leaf, Search, Grid3X3, List, X, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import RestaurantSkeleton from '../components/RestaurantSkeleton';
@@ -35,6 +36,8 @@ const Explore = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
   const { cart, addToCart, removeOneFromCart } = useCart();
+  const { user } = useAuth();
+  const canOrder = !user || user.role === 'ROLE_USER';
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -384,7 +387,12 @@ const Explore = () => {
                       </div>
                       <div className="mt-auto border-t pt-3">
                         <h3 className="font-bold text-[10px] uppercase tracking-widest text-gray-400 mb-2">Menu</h3>
-                        {res.menu?.slice(0, 3).map((item, i) => {
+                        {!canOrder && (
+                          <p className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2">
+                            Staff preview — ordering disabled.
+                          </p>
+                        )}
+                        {canOrder && res.menu?.slice(0, 3).map((item, i) => {
                           const itemCount = cart.filter(c => c.name === item.name && c.restaurantName === res.name).length;
                           const itemInCart = cart.find(c => c.name === item.name && c.restaurantName === res.name);
                           return (

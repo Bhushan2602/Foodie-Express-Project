@@ -3,18 +3,66 @@ import toast from 'react-hot-toast';
 
 const CartContext = createContext();
 
+const getCartKey = () => {
+  try {
+    const saved = localStorage.getItem('foodie_user');
+    const email = saved ? JSON.parse(saved)?.email : null;
+    return email ? `foodie_cart_${email.toLowerCase()}` : 'foodie_cart_guest';
+  } catch {
+    return 'foodie_cart_guest';
+  }
+};
+
+const loadCart = () => {
+  try {
+    // Migrate legacy shared cart once, then drop it so old admin items don't leak.
+    const legacy = localStorage.getItem('foodie_cart');
+    const key = getCartKey();
+    if (legacy && !localStorage.getItem(key)) {
+      localStorage.setItem(key, legacy);
+    }
+    localStorage.removeItem('foodie_cart');
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('foodie_cart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [cart, setCart] = useState(loadCart);
+  const [cartOwner, setCartOwner] = useState(getCartKey);
 
   useEffect(() => {
-    localStorage.setItem('foodie_cart', JSON.stringify(cart));
-  }, [cart]);
+    const reload = () => {
+      setCartOwner(getCartKey());
+      setCart(loadCart());
+    };
+    window.addEventListener('foodie-auth-change', reload);
+    window.addEventListener('storage', reload);
+    return () => {
+      window.removeEventListener('foodie-auth-change', reload);
+      window.removeEventListener('storage', reload);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(cartOwner, JSON.stringify(cart));
+  }, [cart, cartOwner]);
 
   // ✅ STRICT SINGLE-CITY POLICY LOGIC
-  const addToCart = (item, restaurantName, city) => { 
+  const addToCart = (item, restaurantName, city) => {
+    // Enterprise guard: only customers (or guests) can order.
+    try {
+      const saved = localStorage.getItem('foodie_user');
+      const role = saved ? JSON.parse(saved)?.role : null;
+      if (role && role !== 'ROLE_USER') {
+        toast.error('Staff accounts cannot order. Please login as a customer to add to cart.');
+        return;
+      }
+    } catch {
+      // fall through as guest
+    }
     
     // 1. If cart has items, check if the CITY is different
     if (cart.length > 0 && cart[0].city !== city) {

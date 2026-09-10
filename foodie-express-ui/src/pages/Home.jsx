@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { restaurantService } from '../services/api';
 import { Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import CuisineCategories from '../components/CuisineCategories';
@@ -20,6 +21,8 @@ const Home = ({ selectedCity, setSelectedCity }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const { cart, addToCart, removeOneFromCart } = useCart();
+  const { user } = useAuth();
+  const canOrder = !user || user.role === 'ROLE_USER';
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -60,10 +63,6 @@ const Home = ({ selectedCity, setSelectedCity }) => {
     setFilteredRestaurants(result);
   }, [searchQuery, selectedCuisine, restaurants]);
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-  };
-
   const handleCuisineSelect = (cuisine) => {
     setSelectedCuisine(cuisine);
     const el = document.getElementById('restaurants-section');
@@ -72,7 +71,7 @@ const Home = ({ selectedCity, setSelectedCity }) => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20 md:pb-0">
-      <HeroSection onSearch={handleSearch} />
+      <HeroSection />
 
       <CuisineCategories onSelect={handleCuisineSelect} />
 
@@ -123,11 +122,12 @@ const Home = ({ selectedCity, setSelectedCity }) => {
                   transition={{ delay: Math.min(idx * 0.05, 0.5) }}
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
                 >
-                  <Link to={`/restaurant/${res.id}`} className="h-48 overflow-hidden relative block">
+                  <Link to={`/restaurant/${res.id}`} className="h-48 overflow-hidden relative block bg-gray-100">
                     <img
                       src={res.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"}
                       alt={res.name}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 aspect-[4/3]"
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">
                       <span className="text-xs font-black text-gray-800">⭐ {res.rating || "4.0"}</span>
@@ -152,7 +152,12 @@ const Home = ({ selectedCity, setSelectedCity }) => {
 
                     <div className="mt-auto border-t pt-3">
                       <h3 className="font-bold text-[10px] uppercase tracking-widest text-gray-400 mb-2">Quick Add</h3>
-                      {res.menu?.slice(0, 2).map((item, i) => {
+                      {!canOrder && (
+                        <p className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                          Staff preview — ordering disabled.
+                        </p>
+                      )}
+                      {canOrder && res.menu?.slice(0, 2).map((item, i) => {
                         const itemCount = cart.filter(c => c.name === item.name && c.restaurantName === res.name).length;
                         const itemInCart = cart.find(c => c.name === item.name && c.restaurantName === res.name);
                         return (

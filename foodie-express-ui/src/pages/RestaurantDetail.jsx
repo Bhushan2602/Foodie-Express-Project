@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { restaurantService } from '../services/api';
 import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, Leaf, Share2, Heart, Info, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import React from 'react';
 
 const reviews = [
@@ -20,6 +21,8 @@ const RestaurantDetail = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [showAllReviews, setShowAllReviews] = useState(false);
   const { cart, addToCart, removeOneFromCart } = useCart();
+  const { user } = useAuth();
+  const canOrder = !user || user.role === 'ROLE_USER';
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -176,6 +179,11 @@ const RestaurantDetail = () => {
 
       {/* Menu Section */}
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
+        {!canOrder && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm font-bold text-amber-800">
+            Staff preview mode — ordering is disabled for {user?.role?.replace('ROLE_', '')?.toLowerCase()} accounts. Login as a customer to add items to cart.
+          </div>
+        )}
         {/* Category Tabs */}
         <div className="flex items-center gap-3 mb-6 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
@@ -232,7 +240,11 @@ const RestaurantDetail = () => {
                 </div>
 
                 <div className="flex-shrink-0">
-                  {itemCount > 0 ? (
+                  {!canOrder ? (
+                    <span className="text-[11px] font-black text-gray-400 bg-gray-100 px-4 py-2.5 rounded-xl uppercase tracking-wider">
+                      View only
+                    </span>
+                  ) : itemCount > 0 ? (
                     <div className="flex items-center gap-2 bg-orange-50 rounded-xl p-1 border border-orange-100">
                       <button
                         onClick={() => removeOneFromCart(itemInCart.id)}
@@ -309,7 +321,7 @@ const RestaurantDetail = () => {
       </div>
 
       {/* Floating Cart Bar */}
-      {totalCartItems > 0 && (
+      {totalCartItems > 0 && canOrder && (
         <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 z-40">
           <motion.button
             initial={{ y: 50, opacity: 0 }}

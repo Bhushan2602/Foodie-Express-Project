@@ -73,6 +73,8 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
 
   const cities = ["All", "Hyderabad", "Mumbai", "Delhi", "Bangalore", "Pune", "Kolkata", "Chennai", "Jaipur", "Ahmedabad", "Lucknow", "Goa", "Chandigarh", "Jalgaon"];
 
+  const canOrder = !user || user.role === 'ROLE_USER';
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-4">
@@ -133,6 +135,7 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
             <span className="hidden xl:inline">Explore</span>
           </Link>
 
+          {canOrder && (
           <Link to="/cart" className="relative text-gray-600 hover:text-orange-500 transition no-underline">
             <ShoppingBag size={20} />
             {cart.length > 0 && (
@@ -141,6 +144,7 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
               </span>
             )}
           </Link>
+          )}
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -224,9 +228,11 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
           <Link to="/explore" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl no-underline transition">
             <Compass size={18} /> Explore
           </Link>
+          {canOrder && (
           <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl no-underline transition">
             <ShoppingBag size={18} /> Cart {cart.length > 0 && <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{cart.length}</span>}
           </Link>
+          )}
           {user && (
             <>
               {user.role === 'ROLE_ADMIN' && (
@@ -244,9 +250,11 @@ const Navbar = ({ selectedCity, setSelectedCity }) => {
                   <Utensils size={18} /> Restaurant Panel
                 </Link>
               )}
+              {canOrder && (
               <Link to="/orders" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl no-underline transition">
                 <Package size={18} /> My Orders
               </Link>
+              )}
               <button onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl w-full transition">
                 <LogOut size={18} /> Logout
               </button>

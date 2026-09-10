@@ -14,12 +14,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('foodie_user', JSON.stringify(userData));
     // Also save token separately if your api.js specifically looks for it
     localStorage.setItem('token', userData.token);
+    window.dispatchEvent(new Event('foodie-auth-change'));
   };
 
   const logoutUser = () => {
     setUser(null);
     localStorage.removeItem('foodie_user');
     localStorage.removeItem('token');
+    window.dispatchEvent(new Event('foodie-auth-change'));
   };
 
   return (
