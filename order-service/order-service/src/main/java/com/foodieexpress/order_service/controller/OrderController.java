@@ -80,6 +80,18 @@ public class OrderController {
         return ResponseEntity.ok(orderService.declineOrder(id, deliveryPartnerEmail));
     }
 
+    // 5d. Broadcast order to ALL partners at once (clears assignment + decline history)
+    @PutMapping("/{id}/broadcast")
+    public ResponseEntity<FoodOrder> broadcastOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.broadcastOrder(id));
+    }
+
+    // 5e. Open pool: READY + unassigned, visible to every partner
+    @GetMapping("/pool")
+    public ResponseEntity<List<FoodOrder>> getAvailablePool() {
+        return ResponseEntity.ok(orderService.getAvailablePool());
+    }
+
     // 6. Get orders assigned to a delivery partner
     @GetMapping("/assigned/{email}")
     public ResponseEntity<List<FoodOrder>> getDeliveryPartnerOrders(@PathVariable String email) {

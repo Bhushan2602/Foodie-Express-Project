@@ -16,6 +16,7 @@ const RestaurantOwnerDashboard = () => {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('orders');
+  const [partners, setPartners] = useState([]);
   const pollingRef = useRef(null);
 
   useEffect(() => {
@@ -47,6 +48,16 @@ const RestaurantOwnerDashboard = () => {
   }, [selectedRestaurant]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  useEffect(() => {
+    authService.getDeliveryPartners().then((r) => setPartners(r.data || [])).catch(() => {});
+  }, []);
+
+  const declinedList = (order) => (order.declinedBy || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const allDeclined = (order) =>
+    partners.length > 0 &&
+    !order.assignedDeliveryPartner &&
+    declinedList(order).length >= partners.length;
 
   useEffect(() => {
     if (activeTab === 'orders') {
@@ -85,30 +96,12 @@ const RestaurantOwnerDashboard = () => {
 
   const handleMarkReady = async (orderId) => {
     try {
-      const partnersRes = await authService.getDeliveryPartners();
-      const partners = partnersRes.data || [];
-      const order = orders.find((o) => o.id === orderId);
-      // Exclude the last decliner to avoid decline loops (fall back to full pool if alone)
-      const eligible = order?.declinedBy
-        ? partners.filter((p) => p.toLowerCase() !== order.declinedBy.toLowerCase())
-        : partners;
-      const pool = eligible.length > 0 ? eligible : partners;
-      if (pool.length === 0) {
-        toast.error("No delivery partners available. Order marked as Ready.");
-        await orderService.updateOrderStatus(orderId, 'READY');
-        fetchOrders();
-        return;
-      }
-      const assignedPartner = pool[Math.floor(Math.random() * pool.length)];
-      await orderService.assignDeliveryPartner(orderId, assignedPartner);
-      toast.success(
-        order?.declinedBy
-          ? `Order #${orderId} reassigned to ${assignedPartner} (was declined by ${order.declinedBy}).`
-          : `Order #${orderId} ready! Sent to ${assignedPartner} for acceptance.`
-      );
+      // Broadcast to ALL partners at once — first to accept wins
+      await orderService.broadcastOrder(orderId);
+      toast.success(`Order #${orderId} broadcast to all ${partners.length || ''} partners! First to accept wins.`);
       fetchOrders();
-    } catch {
-      toast.error("Failed to update status");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to broadcast order");
     }
   };
 
@@ -239,14 +232,19 @@ const RestaurantOwnerDashboard = () => {
                                 <Truck size={10} /> {order.assignedDeliveryPartner}
                               </span>
                             )}
-                            {currentStatus === 'READY' && !order.assignedDeliveryPartner && order.declinedBy && (
+                            {currentStatus === 'READY' && !order.assignedDeliveryPartner && order.declinedBy && !allDeclined(order) && (
                               <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
-                                ⚠ Declined by {order.declinedBy}{order.declineCount > 1 ? ` (${order.declineCount}x)` : ''} — tap Ready to reassign
+                                ⚠ {declinedList(order).length}/{partners.length || '?'} declined — waiting on the rest
+                              </span>
+                            )}
+                            {allDeclined(order) && (
+                              <span className="text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">
+                                ❌ All partners declined — rebroadcast below
                               </span>
                             )}
                             {currentStatus === 'READY' && !order.assignedDeliveryPartner && !order.declinedBy && (
                               <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
-                                READY · UNASSIGNED
+                                📢 LIVE TO ALL PARTNERS
                               </span>
                             )}
                             {order.deliverySlot === 'LATER' && order.scheduledFor && (
@@ -277,12 +275,12 @@ const RestaurantOwnerDashboard = () => {
                           )}
                           {currentStatus === 'PREPARING' && (
                             <button onClick={() => handleMarkReady(order.id)} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2">
-                              <Truck size={14} /> Ready for Pickup
+                              <Truck size={14} /> Broadcast to All
                             </button>
                           )}
                           {currentStatus === 'READY' && !order.assignedDeliveryPartner && (
                             <button onClick={() => handleMarkReady(order.id)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2">
-                              <Truck size={14} /> Reassign Partner
+                              <Truck size={14} /> {allDeclined(order) ? 'Rebroadcast to All' : 'Broadcast Again'}
                             </button>
                           )}
                           {currentStatus === 'ON THE WAY' && (

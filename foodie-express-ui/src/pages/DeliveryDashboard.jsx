@@ -10,21 +10,32 @@ import toast from 'react-hot-toast';
 const DeliveryDashboard = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [pool, setPool] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newIds, setNewIds] = useState([]);
   const seenRef = useRef(new Set());
 
+  const declinedByMe = (o) =>
+    (o.declinedBy || '').split(',').map((s) => s.trim().toLowerCase()).includes((user?.email || '').toLowerCase());
+
   const fetchAssignedOrders = async () => {
     if (!user?.email) return;
     try {
-      const response = await orderService.getDeliveryPartnerOrders(user.email);
-      const fresh = response.data.sort((a, b) => b.id - a.id);
-      const freshNew = fresh.filter((o) => o.status?.toUpperCase() === 'READY' && !seenRef.current.has(o.id));
+      const [mineRes, poolRes] = await Promise.all([
+        orderService.getDeliveryPartnerOrders(user.email),
+        orderService.getAvailablePool(),
+      ]);
+      const fresh = mineRes.data.sort((a, b) => b.id - a.id);
+      const openPool = (poolRes.data || [])
+        .filter((o) => !declinedByMe(o))
+        .sort((a, b) => b.id - a.id);
+      const freshNew = openPool.filter((o) => !seenRef.current.has(o.id));
       if (freshNew.length > 0 && seenRef.current.size > 0) {
-        toast.success(`New delivery assigned: ${freshNew.map((o) => `#${o.id}`).join(', ')}`);
+        toast.success(`New delivery in pool: ${freshNew.map((o) => `#${o.id}`).join(', ')} — fastest finger wins!`);
       }
-      fresh.forEach((o) => seenRef.current.add(o.id));
+      [...fresh, ...openPool].forEach((o) => seenRef.current.add(o.id));
       setOrders(fresh);
+      setPool(openPool);
       setNewIds(freshNew.map((o) => o.id));
       setTimeout(() => setNewIds([]), 15000);
     } catch (err) {
@@ -73,13 +84,14 @@ const DeliveryDashboard = () => {
     }
   };
 
-  const handleDecline = async (orderId) => {
-    if (!window.confirm(`Decline order #${orderId}? It returns to the restaurant pool.`)) return;
+  const handleDecline = async (orderId, fromPool = false) => {
+    if (!window.confirm(`Decline order #${orderId}? ${fromPool ? 'It stays open for other partners.' : 'It returns to the restaurant pool.'}`)) return;
     // Optimistic removal so the card vanishes instantly instead of waiting for next poll
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    if (fromPool) setPool((prev) => prev.filter((o) => o.id !== orderId));
+    else setOrders((prev) => prev.filter((o) => o.id !== orderId));
     try {
       await orderService.declineOrder(orderId, user.email);
-      toast.success(`Order #${orderId} declined — back to restaurant pool.`);
+      toast.success(`Order #${orderId} declined.`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to decline order");
       fetchAssignedOrders();
@@ -173,6 +185,40 @@ const DeliveryDashboard = () => {
           </div>
         </div>
 
+        <div className="bg-gray-900 rounded-2xl p-5 border border-cyan-500/20 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-black text-white flex items-center gap-2">
+              📢 Open Pool <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full">{pool.length} LIVE</span>
+            </h2>
+            <p className="text-[11px] text-gray-500">Broadcast to all — first to accept wins</p>
+          </div>
+          {pool.length === 0 ? (
+            <p className="text-sm text-gray-500">No open orders right now. New broadcasts will pop up here.</p>
+          ) : (
+            <div className="space-y-3">
+              {pool.map((order) => (
+                <div key={order.id} className={`bg-gray-800/60 rounded-2xl p-4 border flex flex-col md:flex-row md:items-center gap-3 ${newIds.includes(order.id) ? 'border-orange-500 shadow-lg shadow-orange-500/10' : 'border-gray-700'}`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-black text-cyan-300">Order #{order.id}</span>
+                      {newIds.includes(order.id) && (
+                        <span className="px-2 py-0.5 text-[10px] font-black uppercase rounded-md bg-orange-500 text-white animate-pulse">New</span>
+                      )}
+                    </div>
+                    <p className="text-sm font-bold text-white">{order.restaurantName}</p>
+                    <p className="text-xs text-gray-400">₹{order.totalAmount} → earn ~₹{Math.round((order.totalAmount || 0) * 0.15)}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleAccept(order.id)} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase transition">Accept</button>
+                    <button onClick={() => handleDecline(order.id, true)} className="text-red-400 border border-red-500/30 hover:bg-red-500/10 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition">Pass</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <h2 className="font-black text-white mb-4">My deliveries</h2>
         <div className="space-y-4">
           {orders.length === 0 ? (
             <div className="bg-gray-900 rounded-2xl p-12 border border-gray-800 text-center">

@@ -76,6 +76,8 @@ export const orderService = {
     updateOrderStatus: (id, status) => API.put(`/orders/${id}/status?status=${status}`),
     cancelOrder: (id, email) => API.put(`/orders/${id}/cancel?email=${encodeURIComponent(email)}`),
     assignDeliveryPartner: (id, email) => API.put(`/orders/${id}/assign?deliveryPartnerEmail=${email}`),
+    broadcastOrder: (id) => API.put(`/orders/${id}/broadcast`),
+    getAvailablePool: () => API.get('/orders/pool'),
     acceptOrder: (id, email) => API.put(`/orders/${id}/accept?deliveryPartnerEmail=${email}`),
     declineOrder: (id, email) => API.put(`/orders/${id}/decline?deliveryPartnerEmail=${email}`),
     getDeliveryPartnerOrders: (email) => API.get(`/orders/assigned/${email}`),

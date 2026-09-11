@@ -132,9 +132,10 @@ public class OrderService {
         if (!"READY".equalsIgnoreCase(order.getStatus())) {
             throw new RuntimeException("Only READY orders can be accepted (current: " + order.getStatus() + ")");
         }
+        // Broadcast race: whoever is still unassigned can claim it first
         if (order.getAssignedDeliveryPartner() != null
                 && !order.getAssignedDeliveryPartner().equalsIgnoreCase(deliveryPartnerEmail)) {
-            throw new RuntimeException("Order is assigned to another partner");
+            throw new RuntimeException("Order was just accepted by another partner");
         }
         order.setAssignedDeliveryPartner(deliveryPartnerEmail);
         order.setStatus("ON THE WAY");
@@ -147,11 +148,37 @@ public class OrderService {
         if (!"READY".equalsIgnoreCase(order.getStatus())) {
             throw new RuntimeException("Only READY orders can be declined (current: " + order.getStatus() + ")");
         }
+        // Multi-decline tracking: comma-separated list so broadcast knows who is left
+        String current = order.getDeclinedBy() == null ? "" : order.getDeclinedBy();
+        boolean already = java.util.Arrays.stream(current.split(","))
+                .anyMatch(e -> e.equalsIgnoreCase(deliveryPartnerEmail));
+        if (!already) {
+            order.setDeclinedBy(current.isBlank() ? deliveryPartnerEmail : current + "," + deliveryPartnerEmail);
+            order.setDeclineCount((order.getDeclineCount() == null ? 0 : order.getDeclineCount()) + 1);
+        }
         order.setAssignedDeliveryPartner(null);
-        order.setDeclinedBy(deliveryPartnerEmail);
-        order.setDeclineCount((order.getDeclineCount() == null ? 0 : order.getDeclineCount()) + 1);
         order.setStatus("READY");
         return orderRepository.save(order);
+    }
+
+    public FoodOrder broadcastOrder(Long orderId) {
+        FoodOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        if (!"PREPARING".equalsIgnoreCase(order.getStatus()) && !"READY".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Only PREPARING/READY orders can be broadcast (current: " + order.getStatus() + ")");
+        }
+        // Fresh broadcast to ALL partners: clear assignment + decline history
+        order.setAssignedDeliveryPartner(null);
+        order.setDeclinedBy(null);
+        order.setDeclineCount(0);
+        order.setStatus("READY");
+        return orderRepository.save(order);
+    }
+
+    public List<FoodOrder> getAvailablePool() {
+        return orderRepository.findByStatus("READY").stream()
+                .filter(o -> o.getAssignedDeliveryPartner() == null)
+                .toList();
     }
 
     public List<FoodOrder> getOrdersByDeliveryPartner(String deliveryPartnerEmail) {
