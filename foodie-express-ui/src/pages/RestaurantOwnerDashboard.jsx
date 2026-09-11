@@ -50,7 +50,7 @@ const RestaurantOwnerDashboard = () => {
 
   useEffect(() => {
     if (activeTab === 'orders') {
-      pollingRef.current = setInterval(fetchOrders, 10000);
+      pollingRef.current = setInterval(fetchOrders, 5000);
     }
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, [activeTab, fetchOrders]);
@@ -86,16 +86,26 @@ const RestaurantOwnerDashboard = () => {
   const handleMarkReady = async (orderId) => {
     try {
       const partnersRes = await authService.getDeliveryPartners();
-      const partners = partnersRes.data;
-      if (partners.length === 0) {
+      const partners = partnersRes.data || [];
+      const order = orders.find((o) => o.id === orderId);
+      // Exclude the last decliner to avoid decline loops (fall back to full pool if alone)
+      const eligible = order?.declinedBy
+        ? partners.filter((p) => p.toLowerCase() !== order.declinedBy.toLowerCase())
+        : partners;
+      const pool = eligible.length > 0 ? eligible : partners;
+      if (pool.length === 0) {
         toast.error("No delivery partners available. Order marked as Ready.");
         await orderService.updateOrderStatus(orderId, 'READY');
         fetchOrders();
         return;
       }
-      const assignedPartner = partners[Math.floor(Math.random() * partners.length)];
+      const assignedPartner = pool[Math.floor(Math.random() * pool.length)];
       await orderService.assignDeliveryPartner(orderId, assignedPartner);
-      toast.success(`Order #${orderId} ready! Sent to ${assignedPartner} for acceptance.`);
+      toast.success(
+        order?.declinedBy
+          ? `Order #${orderId} reassigned to ${assignedPartner} (was declined by ${order.declinedBy}).`
+          : `Order #${orderId} ready! Sent to ${assignedPartner} for acceptance.`
+      );
       fetchOrders();
     } catch {
       toast.error("Failed to update status");
@@ -229,6 +239,16 @@ const RestaurantOwnerDashboard = () => {
                                 <Truck size={10} /> {order.assignedDeliveryPartner}
                               </span>
                             )}
+                            {currentStatus === 'READY' && !order.assignedDeliveryPartner && order.declinedBy && (
+                              <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
+                                ⚠ Declined by {order.declinedBy}{order.declineCount > 1 ? ` (${order.declineCount}x)` : ''} — tap Ready to reassign
+                              </span>
+                            )}
+                            {currentStatus === 'READY' && !order.assignedDeliveryPartner && !order.declinedBy && (
+                              <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
+                                READY · UNASSIGNED
+                              </span>
+                            )}
                             {order.deliverySlot === 'LATER' && order.scheduledFor && (
                               <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
                                 🕒 {new Date(order.scheduledFor).toLocaleString()}
@@ -258,6 +278,11 @@ const RestaurantOwnerDashboard = () => {
                           {currentStatus === 'PREPARING' && (
                             <button onClick={() => handleMarkReady(order.id)} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2">
                               <Truck size={14} /> Ready for Pickup
+                            </button>
+                          )}
+                          {currentStatus === 'READY' && !order.assignedDeliveryPartner && (
+                            <button onClick={() => handleMarkReady(order.id)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2">
+                              <Truck size={14} /> Reassign Partner
                             </button>
                           )}
                           {currentStatus === 'ON THE WAY' && (

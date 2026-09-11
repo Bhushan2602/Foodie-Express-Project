@@ -69,4 +69,9 @@ public class FoodOrder {
 
     // Cancellation
     private Double cancellationFee = 0.0;
+
+    // Decline tracking: who last declined + how many times (avoids reassign loops)
+    private String declinedBy;
+
+    private Integer declineCount = 0;
 }

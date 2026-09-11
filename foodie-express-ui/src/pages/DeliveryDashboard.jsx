@@ -75,13 +75,17 @@ const DeliveryDashboard = () => {
 
   const handleDecline = async (orderId) => {
     if (!window.confirm(`Decline order #${orderId}? It returns to the restaurant pool.`)) return;
+    // Optimistic removal so the card vanishes instantly instead of waiting for next poll
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
     try {
       await orderService.declineOrder(orderId, user.email);
-      toast.success(`Order #${orderId} declined — back to pool.`);
-      fetchAssignedOrders();
+      toast.success(`Order #${orderId} declined — back to restaurant pool.`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to decline order");
+      fetchAssignedOrders();
+      return;
     }
+    fetchAssignedOrders();
   };
 
   const earningsData = useMemo(() => earningsByDay(orders), [orders]);

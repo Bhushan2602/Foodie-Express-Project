@@ -148,6 +148,8 @@ public class OrderService {
             throw new RuntimeException("Only READY orders can be declined (current: " + order.getStatus() + ")");
         }
         order.setAssignedDeliveryPartner(null);
+        order.setDeclinedBy(deliveryPartnerEmail);
+        order.setDeclineCount((order.getDeclineCount() == null ? 0 : order.getDeclineCount()) + 1);
         order.setStatus("READY");
         return orderRepository.save(order);
     }
