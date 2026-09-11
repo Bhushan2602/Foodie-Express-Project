@@ -21,6 +21,11 @@ public class FoodOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Optimistic lock: concurrent first-accept-wins claims serialize here.
+    // Loser gets OptimisticLockException -> 409 "just accepted by another partner".
+    @Version
+    private Long version;
+
     @JsonProperty("customerEmail")
     private String userEmail;
 

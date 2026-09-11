@@ -456,8 +456,8 @@ Foodie-Express-Project/
 - [ ] **WebSocket** — Real-time order status (replace polling)
 - [ ] **Docker Swarm/K8s** — Production-grade orchestration
 - [ ] **CI/CD Pipeline** — GitHub Actions for automated deployment
-- [ ] **Unit Tests** — JUnit + Mockito for backend, Vitest for frontend
-- [ ] **Swagger/OpenAPI** — API documentation for all services
+- [x] **Unit Tests** — `PromoServiceTest` (7), `OrderServiceCancelTest` (4), `AuthControllerRoleTest` (3); run per-service with `./mvnw test`
+- [x] **Swagger/OpenAPI** — `/swagger-ui.html` live on every service
 - [ ] **Rate Limiting** — Gateway-level request throttling
 - [ ] **Notification Service** — Email/SMS/Push notifications via Kafka
 
