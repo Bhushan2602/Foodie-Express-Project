@@ -47,6 +47,14 @@ public class OrderController {
         return ResponseEntity.ok(updatedOrder);
     }
 
+    // 4b. Customer cancels own order (fee policy applied server-side)
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<FoodOrder> cancelOrder(
+            @PathVariable Long id,
+            @RequestParam String email) {
+        return ResponseEntity.ok(orderService.cancelOrder(id, email));
+    }
+
     // 5. Assign delivery partner to order (sets READY, awaiting partner accept)
     @PutMapping("/{id}/assign")
     public ResponseEntity<FoodOrder> assignDeliveryPartner(

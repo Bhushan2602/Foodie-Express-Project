@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import { Package, Clock, CheckCircle, MapPin, ShoppingBag, ChefHat, Truck, ExternalLink, RotateCcw } from 'lucide-react';
+import { Package, Clock, CheckCircle, MapPin, ShoppingBag, ChefHat, Truck, ExternalLink, RotateCcw, XCircle, Ban } from 'lucide-react';
 
-const statusFilters = ['All', 'Pending', 'Preparing', 'On The Way', 'Delivered'];
+const statusFilters = ['All', 'Pending', 'Preparing', 'On The Way', 'Delivered', 'Cancelled'];
 
 const MyOrders = () => {
   const { user } = useAuth();
@@ -32,9 +33,32 @@ const MyOrders = () => {
   const getStatusDisplay = (status) => {
     const s = status?.toLowerCase() || 'pending';
     if (s === 'delivered') return { color: 'text-green-600 bg-green-50 border-green-100', icon: <CheckCircle size={14} />, label: 'Delivered' };
+    if (s === 'cancelled') return { color: 'text-red-600 bg-red-50 border-red-100', icon: <Ban size={14} />, label: 'Cancelled' };
+    if (s === 'ready') return { color: 'text-cyan-600 bg-cyan-50 border-cyan-100', icon: <Truck size={14} />, label: 'On The Way' };
     if (s === 'on the way') return { color: 'text-blue-600 bg-blue-50 border-blue-100', icon: <Truck size={14} />, label: 'On The Way' };
     if (s === 'preparing') return { color: 'text-orange-600 bg-orange-50 border-orange-100', icon: <ChefHat size={14} />, label: 'Preparing' };
     return { color: 'text-yellow-600 bg-yellow-50 border-yellow-100', icon: <Clock size={14} />, label: 'Pending' };
+  };
+
+  const cancelFeeFor = (order) => {
+    const s = (order.status || '').toUpperCase();
+    return (s === 'READY' || s === 'ON THE WAY') ? 30 : 0;
+  };
+
+  const handleCancel = async (order) => {
+    const fee = cancelFeeFor(order);
+    const msg = fee > 0
+      ? `Cancel order #${order.id}? A ₹${fee} cancellation charge applies (partner already involved).${order.paymentMethod === 'cod' ? ' No online refund — fee is recorded on the order.' : ' Refund = paid amount minus fee.'}`
+      : `Cancel order #${order.id}? No charge applies before dispatch.`;
+    if (!window.confirm(msg)) return;
+    try {
+      await orderService.cancelOrder(order.id, user.email);
+      toast.success(fee > 0 ? `Order cancelled. ₹${fee} fee applied.` : 'Order cancelled — no charge.');
+      const response = await orderService.getUserOrders(user.email);
+      setOrders((response.data || []).sort((a, b) => b.id - a.id));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Cancel failed');
+    }
   };
 
   const filteredOrders = activeFilter === 'All'
@@ -105,7 +129,8 @@ const MyOrders = () => {
         <div className="space-y-4">
           {filteredOrders.map((order, idx) => {
             const statusStyle = getStatusDisplay(order.status);
-            const isActive = order.status?.toLowerCase() !== 'delivered';
+            const cancellable = !['delivered', 'cancelled'].includes((order.status || '').toLowerCase());
+            const isActive = order.status?.toLowerCase() !== 'delivered' && order.status?.toLowerCase() !== 'cancelled';
             return (
               <motion.div 
                 key={order.id}
@@ -154,6 +179,17 @@ const MyOrders = () => {
                         >
                           Track <ExternalLink size={10} />
                         </Link>
+                      )}
+                      {cancellable && (
+                        <button
+                          onClick={() => handleCancel(order)}
+                          className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1 hover:bg-red-50 transition"
+                        >
+                          <XCircle size={10} /> Cancel{cancelFeeFor(order) > 0 ? ` (₹${cancelFeeFor(order)} fee)` : ' (free)'}
+                        </button>
+                      )}
+                      {order.status?.toLowerCase() === 'cancelled' && order.cancellationFee > 0 && (
+                        <p className="text-[11px] font-bold text-red-500">Fee applied: ₹{order.cancellationFee}</p>
                       )}
                       {!isActive && (
                         <Link

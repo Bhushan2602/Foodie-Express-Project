@@ -106,7 +106,7 @@ const SearchBar = ({ onSearch, selectedCity = 'All' }) => {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsOpen(true)}
             placeholder="Search restaurants, cuisines, or dishes..."
-            className="w-full pl-12 pr-12 py-4 bg-transparent rounded-2xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none"
+            className="w-full pl-12 pr-12 py-4 bg-transparent rounded-2xl text-sm font-medium text-gray-800 dark:text-stone-100 placeholder-gray-400 focus:outline-none"
           />
           {query && (
             <button

@@ -72,7 +72,7 @@ const SearchPalette = ({ open, onClose, selectedCity }) => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search restaurants, cuisines, dishes..."
-                className="flex-1 outline-none text-sm font-medium"
+                className="flex-1 outline-none text-sm font-medium text-gray-800 placeholder-gray-400 bg-transparent"
               />
               <kbd className="text-[10px] font-black bg-gray-100 px-2 py-1 rounded-lg text-gray-500">ESC</kbd>
             </div>

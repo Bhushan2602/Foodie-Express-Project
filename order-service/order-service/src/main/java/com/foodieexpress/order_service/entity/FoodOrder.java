@@ -66,4 +66,7 @@ public class FoodOrder {
     private String deliverySlot = "NOW";
 
     private LocalDateTime scheduledFor;
+
+    // Cancellation
+    private Double cancellationFee = 0.0;
 }

@@ -100,6 +100,23 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public FoodOrder cancelOrder(Long orderId, String customerEmail) {
+        FoodOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        if (customerEmail != null && !customerEmail.equalsIgnoreCase(order.getUserEmail())) {
+            throw new RuntimeException("You can only cancel your own orders");
+        }
+        String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase();
+        if ("DELIVERED".equals(status) || "CANCELLED".equals(status)) {
+            throw new RuntimeException("Delivered orders cannot be cancelled");
+        }
+        // Fee policy: free before dispatch, ₹30 once a partner is involved
+        double fee = ("READY".equals(status) || "ON THE WAY".equals(status)) ? 30.0 : 0.0;
+        order.setCancellationFee(fee);
+        order.setStatus("CANCELLED");
+        return orderRepository.save(order);
+    }
+
     public FoodOrder assignDeliveryPartner(Long orderId, String deliveryPartnerEmail) {
         FoodOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));

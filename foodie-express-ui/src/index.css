@@ -80,6 +80,20 @@
     transition: border-color 0.2s var(--ease-fluid), box-shadow 0.2s var(--ease-fluid), background-color 0.2s var(--ease-fluid);
   }
 
+  /* Typed text must stay visible: inputs with LIGHT backgrounds always get dark text,
+     even when the page is in dark mode (body text goes near-white). Dark-bg inputs
+     (dark:bg-stone-900 etc.) keep the inherited light text. */
+  input.bg-white, input.bg-gray-50, input.bg-gray-100,
+  textarea.bg-white, textarea.bg-gray-50, textarea.bg-gray-100,
+  select.bg-white, select.bg-gray-50, select.bg-gray-100 {
+    color: #1c1917;
+  }
+  input.bg-white::placeholder, input.bg-gray-50::placeholder, input.bg-gray-100::placeholder,
+  textarea.bg-white::placeholder, textarea.bg-gray-50::placeholder {
+    color: #a8a29e;
+    opacity: 1;
+  }
+
   ::selection {
     @apply bg-orange-200 text-orange-900;
   }
