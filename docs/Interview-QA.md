@@ -11,7 +11,7 @@
 A Swiggy/Zomato-style food delivery platform: 4 Spring Boot microservices behind a Cloud Gateway, React frontend, 45+ seeded restaurants across 13 cities, Razorpay payments (demo mode), admin analytics, restaurant-owner and delivery-partner dashboards, promo engine, order tracking, scheduled delivery.
 
 **Q2. Draw the architecture in words.**
-React (Vite) → Spring Cloud Gateway (:8080) → user-service (:8081, Postgres foodie_users), restaurant-service (:8082, Mongo foodiedb + Redis cache), order-service (:8083, Postgres foodie_orders). Infra in Docker: Postgres, Mongo, Redis, Kafka, Zookeeper, ES, Kafka UI. Gateway routes by path (`/api/auth/**`, `/api/restaurants/**`, `/api/orders/**`, `/api/payments/**`).
+React (Vite) → Spring Cloud Gateway (:8080) → user-service (:8081, Postgres foodie_users), restaurant-service (:8082, Mongo foodiedb + Redis cache), order-service (:8083, Postgres foodie_orders). Infra in the default Docker stack: Postgres, Mongo, Redis + 4 Java services + gateway + UI (8 containers, one `up --build`). Kafka/Zookeeper/Elasticsearch are reserved in a separate `docker-compose.messaging.yml` and not started by default. Gateway routes by path (`/api/auth/**`, `/api/restaurants/**`, `/api/orders/**`, `/api/payments/**`).
 
 **Q3. Why microservices instead of a monolith?**
 Independent scaling (restaurant reads scale separately from orders), independent databases per bounded context, independent deploys. Tradeoff I accept: more ops complexity — handled with one `docker compose up --build`.
@@ -67,10 +67,10 @@ Orders/users are relational (joins, transactions, uniqueness on email). Restaura
 `restaurant-service` has `@EnableCaching` + `CacheConfig` (10-min TTL, JSON serializer). `getAllRestaurants` → `restaurants` cache; `getRestaurantsByCity` → `restaurantsByCity` keyed by lowercase city. All writes `@CacheEvict` both caches. Backed by the Redis container (`SPRING_REDIS_HOST=redis` in Compose).
 
 **Q18. Is Kafka actually used? Be honest.**
-Honestly: the broker + Zookeeper + Kafka UI run in Compose, but no producer/consumer is wired yet — order events are my planned next step (publish `order-created`, notification consumer). I never claim otherwise; the README marks it "planned".
+Honestly: no. Kafka/Zookeeper/Kafka UI live in a separate `docker-compose.messaging.yml` that isn't started by default, and no producer/consumer is wired — order flow is synchronous REST today. I deliberately scoped messaging out to keep the project believable; my planned first event is `order-created` from order-service with a notification consumer. I never claim otherwise; the README marks it roadmap.
 
 **Q19. Same question for Elasticsearch?**
-Same honest answer: container runs, no indexing wired yet. Search today is backend filtering (city/cuisine/dish match) + frontend filters. ES full-text is roadmap.
+Same honest answer: reserved in `docker-compose.messaging.yml`, not started by default, no indexing wired. Search today is backend filtering (city/cuisine/dish match) + frontend filters. ES full-text is roadmap.
 
 **Q20. How do you handle validation errors consistently?**
 Bean Validation (`@Valid`, `@NotBlank`, `@Email`, `@Size`) on DTOs + `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `{timestamp, status, error, message}` JSON. Frontend `api.js` reads `error.response.data.message` for toasts.
@@ -127,7 +127,7 @@ Order tracking polls every 5s, partner pool every 8s, owner every 5s. Simple and
 ## 6. Docker / DevOps
 
 **Q34. What's in the Compose stack?**
-Postgres, Mongo, Redis, Zookeeper, Kafka, Kafka UI, Elasticsearch + 4 Java services + UI (nginx) — 12 containers, one `up --build`. Postgres healthcheck gates Java services; Mongo got `start_period: 40s` after slow-machine failures.
+Default `docker-compose.yml`: Postgres, Mongo, Redis + 4 Java services + gateway + nginx UI — 8 containers, one `up --build`. Postgres healthcheck gates Java services; Mongo got `start_period: 40s` after slow-machine failures. Kafka/Zookeeper/Kafka UI/Elasticsearch live in `docker-compose.messaging.yml` for the roadmap and start only with `-f` explicitly.
 
 **Q35. How does CI work?**
 `.github/workflows/build.yml`: matrix build of all 4 services (`mvnw package`) + frontend (`npm ci && npm run build`) on push/PR with Java 21 + Node 20.
@@ -172,4 +172,4 @@ One production-shaped system forced me through auth, state machines, caching, pr
 
 ---
 
-*Generated for interview prep. Honest scope: Kafka/ES run in Docker but are not wired to app logic yet.*
+*Generated for interview prep. Honest scope: Kafka/ES are reserved in a separate compose file and not wired to app logic; the default stack is Postgres + Mongo + Redis only.*

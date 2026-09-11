@@ -4,7 +4,7 @@
 
 ### Full-Stack Enterprise Food Delivery Platform
 
-**React 19 + Spring Boot 3 + Docker + PostgreSQL + MongoDB + Redis + Kafka + Razorpay**
+**React 19 + Spring Boot 3 + Docker + PostgreSQL + MongoDB + Redis + Razorpay**
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -39,7 +39,7 @@ Foodie Express is a **production-grade microservices-based food delivery platfor
 
 ### Key Highlights
 - **4 Microservices** with independent databases
-- **7 Infrastructure Services** (PostgreSQL, MongoDB, Redis, Kafka, Elasticsearch, Zookeeper)
+- **3 Infrastructure Services** (PostgreSQL, MongoDB, Redis — all actually used)
 - **45+ Restaurants** across 14 cities with real food images
 - **Enterprise Admin Dashboard** with Recharts analytics
 - **Razorpay Payment Gateway** with demo mode
@@ -73,18 +73,17 @@ Foodie Express is a **production-grade microservices-based food delivery platfor
 
 ┌──────────────────────────────────────────────────────────────────┐
 │                    INFRASTRUCTURE (Docker)                       │
-│  PostgreSQL │ MongoDB │ Redis │ Kafka │ Zookeeper │ Elasticsearch│
-│  Port:5432  │Port:27017│Port:6379│Port:9092│Port:2181 │Port:9200  │
+│  PostgreSQL │ MongoDB │ Redis (cache)  │
+│  Port:5432  │Port:27017│Port:6379       │
 └──────────────────────────────────────────────────────────────────┘
 ```
+(Roadmap infra — Kafka/Zookeeper/Elasticsearch — lives in `docker-compose.messaging.yml`, not started by default.)
 
 ### Request Flow
 ```
 Client → API Gateway → [JWT Validation] → Microservice → Database
                            ↓
-                     Redis Cache (planned)
-                           ↓
-                     Kafka Events (planned)
+                     Redis Cache (restaurant listings, 10-min TTL)
 ```
 
 ---
@@ -121,12 +120,12 @@ Client → API Gateway → [JWT Validation] → Microservice → Database
 ### Infrastructure
 | Technology | Purpose |
 |---|---|
-| **Docker & Docker Compose** | Containerization |
+| **Docker & Docker Compose** | Containerization (8 services by default) |
 | **PostgreSQL 15** | Relational database (Users, Orders) |
 | **MongoDB 7** | Document database (Restaurants) |
-| **Redis 7** | Caching layer |
-| **Apache Kafka** | Event streaming (planned) |
-| **Elasticsearch 8** | Search engine (planned) |
+| **Redis 7** | Restaurant listing cache (10-min TTL) |
+
+> Roadmap infra (Kafka event streaming, Elasticsearch search) is reserved in `docker-compose.messaging.yml` and not started by default — see [Future Scope](#-future-scope).
 
 ---
 
@@ -315,9 +314,13 @@ docker-compose up --build
 
 This starts:
 - PostgreSQL (5432), MongoDB (27017), Redis (6379)
-- Kafka (9092), Zookeeper (2181), Elasticsearch (9200)
 - User Service (8081), Restaurant Service (8082), Order Service (8083)
-- API Gateway (8080), Kafka UI (8090)
+- API Gateway (8080), UI (3000)
+
+Roadmap infra (Kafka, Elasticsearch) starts separately when needed:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.messaging.yml up --build -d
+```
 
 ### 3. Start Frontend
 ```bash
@@ -335,7 +338,7 @@ npm run dev
 | **Swagger - Users** | http://localhost:8081/swagger-ui.html |
 | **Swagger - Restaurants** | http://localhost:8082/swagger-ui.html |
 | **Swagger - Orders** | http://localhost:8083/swagger-ui.html |
-| **Kafka UI** | http://localhost:8090 |
+| **Kafka UI (roadmap stack only)** | http://localhost:8090 |
 
 ### 5. Create Admin User
 Register via the UI, then update the role in PostgreSQL:
@@ -357,7 +360,8 @@ UPDATE users SET role = 'ROLE_ADMIN' WHERE email = 'your@email.com';
 
 ```
 Foodie-Express-Project/
-├── docker-compose.yml              # 11 services orchestrated
+├── docker-compose.yml              # 8 services: PG + Mongo + Redis + 4 Java + gateway + UI
+├── docker-compose.messaging.yml    # roadmap: Kafka + Zookeeper + Kafka UI + Elasticsearch
 ├── .env.example                    # Environment variables template
 │
 ├── api-gateway/api-gateway/        # Spring Cloud Gateway
@@ -447,8 +451,8 @@ Foodie-Express-Project/
 ## 🔮 Future Scope
 
 - [x] **Redis Caching** — Restaurant listings cached (Spring Cache + Redis, 10-min TTL)
-- [ ] **Kafka Event Streaming** — Async order processing, notification events (broker runs in Docker, producer/consumer yet to be wired)
-- [ ] **Elasticsearch** — Full-text search across restaurants and menus (container runs, indexing yet to be wired)
+- [ ] **Kafka Event Streaming** — Async order processing, notification events (reserved in `docker-compose.messaging.yml`, producer/consumer yet to be wired)
+- [ ] **Elasticsearch** — Full-text search across restaurants and menus (reserved in `docker-compose.messaging.yml`, indexing yet to be wired)
 - [ ] **WebSocket** — Real-time order status (replace polling)
 - [ ] **Docker Swarm/K8s** — Production-grade orchestration
 - [ ] **CI/CD Pipeline** — GitHub Actions for automated deployment
