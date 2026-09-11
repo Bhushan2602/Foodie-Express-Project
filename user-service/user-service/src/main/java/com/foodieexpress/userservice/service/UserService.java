@@ -12,29 +12,23 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor // ✅ This automatically creates a constructor for all 'final' fields
+@RequiredArgsConstructor
 public class UserService {
 
-    // ✅ These must be private final for @RequiredArgsConstructor to work
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
     public JwtAuthResponse loginUser(LoginRequest loginRequest) {
-        // 1. Find user by email
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        // 2. Check if password matches
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password!");
         }
 
-        // 3. GENERATE THE TOKEN! 🎟️
-        // .name() converts the Enum ROLE_ADMIN to a String "ROLE_ADMIN"
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        // 4. ✅ FULL RESPONSE: Returning everything React needs
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);
         response.setName(user.getFullName());

@@ -469,7 +469,7 @@ public class DataInitializer implements CommandLineRunner {
                     new MenuItem(null, "Paneer Kulcha", "Cottage cheese stuffed kulcha", 100, true)
                 )),
 
-            // ==================== JALGAON (4 - Original) ====================
+            // ==================== JALGAON (4) ====================
             new Restaurant(null, "Shree Thaali", "MG Marg, New Market",
                 "Gujarati", "Jalgaon",
                 "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500",
@@ -508,7 +508,7 @@ public class DataInitializer implements CommandLineRunner {
                 ))
         );
 
-        // Backfill enterprise display meta deterministically so UI never shows fake constants.
+        // Backfill display meta so seeded restaurants never render empty fields.
         for (int i = 0; i < restaurants.size(); i++) {
             Restaurant r = restaurants.get(i);
             int hash = Math.abs((r.getName() + r.getCity()).hashCode());

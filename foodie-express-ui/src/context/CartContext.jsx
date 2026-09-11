@@ -50,7 +50,7 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem(cartOwner, JSON.stringify(cart));
   }, [cart, cartOwner]);
 
-  // ✅ STRICT SINGLE-CITY POLICY LOGIC
+  // Single-city policy: one city per cart, multi-restaurant allowed
   const addToCart = (item, restaurantName, city) => {
     // Enterprise guard: only customers (or guests) can order.
     try {

@@ -12,7 +12,7 @@ public class JwtAuthResponse {
     private String tokenType = "Bearer";
     private String name;
     private String email;
-    private String role; // ✅ Added this to send role to Frontend
+    private String role;
 
     // Constructor for quick token response
     public JwtAuthResponse(String token) {

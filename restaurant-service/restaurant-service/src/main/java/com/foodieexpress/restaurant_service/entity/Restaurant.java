@@ -23,8 +23,8 @@ public class Restaurant implements Serializable {
     private String name;
     private String address;
     private String cuisineType;
-    private String city;      // <--- ADD THIS
-    private String imageUrl;  // <--- ADD THIS
+    private String city;
+    private String imageUrl;
 
     // Denormalized display meta (backfilled in DataInitializer for seeded data)
     private Double rating;

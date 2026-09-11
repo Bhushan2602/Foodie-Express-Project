@@ -28,10 +28,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByUser(email));
     }
 
-    // ==========================================
-    // ✅ NEW ADMIN ENDPOINTS BELOW
-    // ==========================================
-
     // 3. Get ALL orders (Admin Dashboard)
     @GetMapping("/all")
     public ResponseEntity<List<FoodOrder>> getAllOrders() {

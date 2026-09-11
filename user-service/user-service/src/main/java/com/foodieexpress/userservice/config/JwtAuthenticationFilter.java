@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 2. Validate token and extract info
             if (jwtUtil.validateToken(token)) {
                 String email = jwtUtil.extractEmail(token);
-                String role = jwtUtil.extractRole(token); // We'll add this to JwtUtil next
+                String role = jwtUtil.extractRole(token);
 
                 // 3. Create Authentication Object with the ROLE
                 // Spring Security needs ROLE_ prefix to work with .hasRole("ADMIN")

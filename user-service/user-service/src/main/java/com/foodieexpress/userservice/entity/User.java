@@ -25,7 +25,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    // ✅ Move the enum INSIDE the class and make it PUBLIC
     public enum Role {
         ROLE_USER,
         ROLE_ADMIN,

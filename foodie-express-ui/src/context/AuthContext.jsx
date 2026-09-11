@@ -9,7 +9,6 @@ export const AuthProvider = ({ children }) => {
   });
 
   const loginUser = (userData) => {
-    // ✅ Expecting userData to have { token, email, name, role }
     setUser(userData);
     localStorage.setItem('foodie_user', JSON.stringify(userData));
     // Also save token separately if your api.js specifically looks for it

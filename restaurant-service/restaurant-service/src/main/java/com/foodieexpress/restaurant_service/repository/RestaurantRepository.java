@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface RestaurantRepository extends MongoRepository<Restaurant, String> {
-    // This naming convention tells Spring to automatically create the "Where city = ?" query
     List<Restaurant> findByCityIgnoreCase(String city);
 }

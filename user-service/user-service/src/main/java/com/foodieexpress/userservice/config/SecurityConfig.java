@@ -15,10 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor // ✅ Generates constructor for the final fields below
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    // ✅ Inject the Filter we created
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -55,7 +54,7 @@ public class SecurityConfig {
                         // 6. Authenticated Endpoints
                         .anyRequest().authenticated()
                 )
-                // ✅ THE MISSING PIECE: Run our JWT filter before the standard UsernamePassword filter
+                // JWT filter runs before the standard username/password filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
